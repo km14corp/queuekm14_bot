@@ -24,7 +24,7 @@ async def start(message: types.message):
     print(me)
     print(message)
     await bot.send_message(405856902, message.chat.last_name+' '+message.chat.first_name)
-    await message.answer('Я {} бот созданый с прихоти создателя для облегчения посылки дз 😜\n Введите /help для '
+    await message.answer('Я {} бот созданый с прихоти создателя для облегчения посылки дз\n Введите /help для '
                          'получениия большей информации'.format(me.first_name))
 
 
