@@ -36,6 +36,6 @@ async def help(message: types.message):
     # data_base.add_info('queue', 'name', message.)
     print(message)
 
-
+#tr
 if __name__ == '__main__':
     executor.start_polling(db, skip_updates=True)
