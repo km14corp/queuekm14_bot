@@ -1,14 +1,14 @@
-# Liza
+import db_help_class
+
 def parsing('name'):
     return date
 
 # Ivan
-{
-    def add(message):
-        data.add_info('''''', )
-    def remove(command='remove'):
-        data.remove
-    }
+def add(name):
+    data = db_help_class("queue.db")
+    data.add_info('queue.db', 'name', name)
+
+
 
 # Danya
 {
