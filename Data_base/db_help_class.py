@@ -68,7 +68,6 @@ class db_help:
         """This method is return info
         - where - name of table where info is exists
         - what - name(s) of column(s) where info is settle down"""
-        # self.connect()
         return_inf = self.cursor.execute("SELECT {what} FROM {where}".format(what=what, where=where)).fetchall()
         return return_inf
 
@@ -94,7 +93,6 @@ class db_help:
     def del_db(self, name):
         """Method to delete database
         - name - name of database we want to delete"""
-        # self.connect()
         if name in self.have_db():
             self.cursor.execute("DROP TABLE '{}'".format(name))
             print('{} has deleted'.format(name))
