@@ -1,6 +1,25 @@
 import sqlite3
 
 
+def connect_close(func):
+    def wrap(*args, **kwargs):
+        args[0].connect()
+        a = func(*args, **kwargs)
+        args[0].close()
+        return a
+
+    return wrap
+
+
+def connect_dec(func):
+    def wrap(*args, **kwargs):
+        args[0].connect()
+        a = func(*args, **kwargs)
+        return a
+
+    return wrap
+
+
 class db_help:
     def __init__(self, db_name):
         """Method to initialize database class and check it
@@ -24,6 +43,7 @@ class db_help:
         if self.conn:
             self.conn.close()
 
+    @connect_close
     def add_info(self, table, column, info):
         """Method to add info into our table
         - table - name of table in with we want to paste our info
@@ -31,7 +51,7 @@ class db_help:
         * if you want to pate in all columns
         - info - list of information what we want to paste
         """
-        self.connect()
+        # self.connect()
         a = "'" + "', '".join(info) + "'"
         column_formatted = ', '.join(column)
         print("INSERT OR IGNORE INTO {table} ({column}) VALUES ({quest})".format(table=table, column=column_formatted,
@@ -41,60 +61,65 @@ class db_help:
                                                                                quest=a))
 
         self.conn.commit()
-        self.close()
+        # self.close()
 
+    @connect_close
     def return_info(self, where, what='*'):
         """This method is return info
         - where - name of table where info is exists
         - what - name(s) of column(s) where info is settle down"""
-        self.connect()
+        # self.connect()
         return_inf = self.cursor.execute("SELECT {what} FROM {where}".format(what=what, where=where)).fetchall()
-        self.close()
+        # self.close()
         return return_inf
 
+    @connect_dec
     def have_db(self):
         """This method is returning names of all tables in database"""
-        self.connect()
+        # self.connect()
         names = list(zip(*self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' and "
                                               "name NOT LIKE 'sqlite_%'")))[0]
         return names
 
+    @connect_close
     def make_db(self, name):
         """Method to create new database (for difference queue)
         - name - name of new database"""
-        self.connect()
-        if name not in self.have_db(name):
+        # self.connect()
+        if name not in self.have_db():
             self.cursor.execute("CREATE TABLE '{}' ("
                                 "number INTEGER PRIMARY KEY AUTOINCREMENT,"
                                 " name   STRING  UNIQUE)".format(name))
         else:
             print('We already have the same table')
-        self.close()
+        # self.close()
 
+    @connect_close
     def del_db(self, name):
         """Method to delete database
         - name - name of database we want to delete"""
-        self.connect()
-        if name in self.have_db(name):
+        # self.connect()
+        if name in self.have_db():
             self.cursor.execute("DROP TABLE '{}'".format(name))
             print('{} has deleted'.format(name))
         else:
             print('We haven`t the same table')
-        self.close()
+        # self.close()
 
+    @connect_close
     def del_row(self, table, name, column='name'):
         """Method to delete row in database and move queue
          - table - name of table in with we want to paste our info
         - name - name what we want to delete
         - column - name of column where name is settle down
         """
-        self.connect()
+        # self.connect()
         if list(self.cursor.execute("SELECT number "
                                     " FROM {table} WHERE {row}='{name}'".format(table=table, name=name,
                                                                                 row=column))):
             a = list(self.cursor.execute("SELECT number "
-                                         " FROM {table} WHERE {row}='{name}'".format(table=table, name=name, row=column)))[
-                0][0]
+                                         " FROM {table} WHERE {row}='{name}'".format(table=table, name=name,
+                                                                                     row=column)))[0][0]
             print(a)
             self.cursor.execute("DELETE FROM {table}"
                                 " WHERE {row}='{name}'".format(row=column, table=table, name=name))
@@ -103,4 +128,4 @@ class db_help:
                                 " WHERE number>{a}".format(table=table, row=column, name=name, a=a))
 
         self.conn.commit()
-        self.close()
+        # self.close()
