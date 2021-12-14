@@ -9,7 +9,7 @@ class db_help:
 
         self.connect()
         self.close()
-
+#we
     def connect(self):
         """Method to initialize connection with database"""
         try:
