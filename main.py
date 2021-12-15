@@ -1,11 +1,9 @@
-import os
-
-from aiogram.types import ContentType
-import string
-import config
 import logging
-from Data_base.db_help_class import db_help
+
 from aiogram import Bot, Dispatcher, executor, types
+
+import config
+from Data_base.db_help_class import db_help
 
 logging.basicConfig(level=logging.INFO)
 
