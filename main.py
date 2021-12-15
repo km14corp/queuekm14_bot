@@ -30,15 +30,16 @@ async def start(message: types.message):
 @db.message_handler(commands=['add'])
 async def add(message: types.message):
     """The add method"""
-    message.text = message.text.replace("/add ", "")
+    message.text = message.text.replace("/add", "")
     message.text = message.text.strip()
-    data_base.add_info('queue', ['name'], [str(message.text)])
+    if message.text:
+        data_base.add_info('queue', ['name'], [str(message.text)])
 
 
 @db.message_handler(commands=['delete'])
 async def delete(message: types.message):
     """The delete method"""
-    message.text = message.text.replace("/delete ", "")
+    message.text = message.text.replace("/delete", "")
     message.text = message.text.strip()
 
     data_base.delete_info('queue', ['name'], [str(message.text)])
