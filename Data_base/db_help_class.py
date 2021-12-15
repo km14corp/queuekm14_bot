@@ -56,7 +56,11 @@ class db_help:
         * if you want to paste in all columns
         - info - list of information what we want to paste
         """
-        if info not in self.unzip(self.return_info(table, column)):
+        if isinstance(info, str):
+            info_form = info
+        else:
+            info_form = info[0]
+        if info_form not in self.unzip(self.return_info(table, column)):
             if isinstance(column, str):
                 column_formatted = column
                 a = "'" + info + "'"
@@ -98,6 +102,9 @@ class db_help:
         """This method is return info
         - where - name of table where info is exists
         - what - name(s) of column(s) where info is settle down"""
+        if not isinstance(what, str):
+            what = ', '.join(what)
+
         return_inf = self.cursor.execute("SELECT {what} FROM {where}".format(what=what, where=where)).fetchall()
         return return_inf
 
