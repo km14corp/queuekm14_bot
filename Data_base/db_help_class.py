@@ -72,6 +72,7 @@ class db_help:
                * if you want to delete from all columns
                - info - list of information what we want to delete
                """
+        
         a = "'" + "', '".join(info) + "'"
         column_formatted = ', '.join(column)
         print("DELETE FROM {table} WHERE {column} = {quest})".format(table=table, column=column_formatted,
