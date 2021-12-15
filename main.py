@@ -42,13 +42,15 @@ async def delete(message: types.message):
     """The delete method"""
     message.text = message.text.replace("/delete ", "")
     message.text = message.text.strip()
+
     data_base.delete_info('queue', ['name'], [str(message.text)])
 
 
 @db.message_handler(commands=['show_var'])
 async def show_variants(message: types.message):
     """The show variants method"""
-    await message.answer(data_base.have_db('queue'))
+    for i, j in enumerate(data_base.have_db()):
+        await message.answer(str(i+1) + ') ' + j)
 
 
 @db.message_handler(commands=['show_table'])
@@ -56,8 +58,10 @@ async def show_table(message: types.message):
     """The show table method"""
     message.text = message.text.replace("/show_table ", "")
     message.text = message.text.strip()
-    data = data_base.return_info('queue', [str(message.text)])  # not sure about arguments
-    await message.answer(data)
+    print(message.text)
+    data = data_base.return_info(message.text, 'name')  # not sure about arguments
+    for i,j in enumerate(data):
+        await message.answer(str(i+1)+') '+j[0])
 
 
 # tr
