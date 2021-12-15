@@ -76,9 +76,11 @@ class db_help:
                                                                                    quest=a))
 
             self.conn.commit()
+            return True
         else:
             print(self.unzip(self.return_info(table, column)))
             print('We already had this info')
+            return False
 
     @connect_close
     def delete_info(self, table, column, info):
@@ -91,10 +93,10 @@ class db_help:
         a = "'" + "', '".join(info) + "'"
         column_formatted = ', '.join(column)
         print("DELETE FROM {table} WHERE {column} = {quest}".format(table=table, column=column_formatted,
-                                                                     quest=a))
+                                                                    quest=a))
         self.cursor.execute(
             "DELETE FROM {table} WHERE {column} = {quest}".format(table=table, column=column_formatted,
-                                                                   quest=a))
+                                                                  quest=a))
 
         self.conn.commit()
 
@@ -113,7 +115,7 @@ class db_help:
     def have_db(self):
         """This method is returning names of all tables in database"""
         names = list(zip(*self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' and "
-                                               "name NOT LIKE 'sqlite_%'")))[0]
+                                              "name NOT LIKE 'sqlite_%'")))[0]
         return names
 
     @connect_close
