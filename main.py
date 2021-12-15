@@ -1,6 +1,7 @@
 import os
 
 from aiogram.types import ContentType
+
 import config
 import logging
 from Data_base.db_help_class import db_help
@@ -9,13 +10,14 @@ from aiogram import Bot, Dispatcher, executor, types
 logging.basicConfig(level=logging.INFO)
 
 # initialise bot
-data_base=db_help('Data_base/queue.db')
+data_base = db_help('Data_base/queue.db')
 bot = Bot(token=config.TOKEN)
 db = Dispatcher(bot)
 
 make_pdf = False
 photo_for_file = []
 
+data = db_help("Data_base\\queue.db")
 
 @db.message_handler(commands=["start"])
 async def start(message: types.message):
@@ -23,11 +25,18 @@ async def start(message: types.message):
     me = await bot.get_me()
     print(me)
     print(message)
-    await bot.send_message(405856902, message.chat.last_name+' '+message.chat.first_name)
+    await bot.send_message(message.chat.id, message.chat.last_name+' '+message.chat.first_name)
     await message.answer('Я {} бот созданый с прихоти создателя для облегчения посылки дз\n Введите /help для '
                          'получениия большей информации'.format(me.first_name))
 
-
+@db.message_handler(commands=['add'])
+async def add(message: types.message):
+    message.text = message.text.replace("/add", "")
+    data.add_info('queue', ['name'], [str(message.text)])
+@db.message_handler(commands=['delete'])
+async def delete(message: types.message):
+    message.text = message.text.replace("/delete", "")
+    data.delete_info('queue', ['name'], [str(message.text)])
 @db.message_handler(commands=["queue"])
 async def help(message: types.message):
     await message.answer('Привет {}, небольшая инструкция для получения тебе нужного pdf файла с картинок:\n1) Введи '
