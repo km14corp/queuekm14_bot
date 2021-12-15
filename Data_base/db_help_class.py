@@ -89,10 +89,10 @@ class db_help:
                """
         a = "'" + "', '".join(info) + "'"
         column_formatted = ', '.join(column)
-        print("DELETE FROM {table} WHERE {column} = {quest})".format(table=table, column=column_formatted,
+        print("DELETE FROM {table} WHERE {column} = {quest}".format(table=table, column=column_formatted,
                                                                      quest=a))
         self.cursor.execute(
-            "DELETE FROM {table} WHERE {column} = {quest})".format(table=table, column=column_formatted,
+            "DELETE FROM {table} WHERE {column} = {quest}".format(table=table, column=column_formatted,
                                                                    quest=a))
 
         self.conn.commit()

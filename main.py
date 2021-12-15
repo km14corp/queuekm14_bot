@@ -31,11 +31,13 @@ async def start(message: types.message):
 
 @db.message_handler(commands=['add'])
 async def add(message: types.message):
-    message.text = message.text.replace("/add", "")
+    """The add method"""
+    message.text = message.text.replace("/add ", "")
     data.add_info('queue', ['name'], [str(message.text)])
 @db.message_handler(commands=['delete'])
 async def delete(message: types.message):
-    message.text = message.text.replace("/delete", "")
+    """The delete method"""
+    message.text = message.text.replace("/delete ", "")
     data.delete_info('queue', ['name'], [str(message.text)])
 @db.message_handler(commands=["queue"])
 async def help(message: types.message):
