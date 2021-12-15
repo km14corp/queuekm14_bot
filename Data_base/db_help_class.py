@@ -77,6 +77,7 @@ class db_help:
 
             self.conn.commit()
         else:
+            print(self.unzip(self.return_info(table, column)))
             print('We already had this info')
 
     @connect_close
@@ -84,7 +85,7 @@ class db_help:
         """Method to delete info from our table
                - table - name of table from  we want to delete our info
                - column - list of name of column(s) from we want to delete the info
-               * if you want to delete from all columns
+               * if you want to delete from all records
                - info - list of information what we want to delete
                """
         a = "'" + "', '".join(info) + "'"
@@ -111,8 +112,8 @@ class db_help:
     @connect_dec
     def have_db(self):
         """This method is returning names of all tables in database"""
-        names = self.unzip(self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' and "
-                                               "name NOT LIKE 'sqlite_%'"))
+        names = list(zip(*self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' and "
+                                               "name NOT LIKE 'sqlite_%'")))[0]
         return names
 
     @connect_close
