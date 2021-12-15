@@ -3,6 +3,7 @@ import sqlite3
 
 def connect_close(func):
     """Decorator to do connect to database, and close connection"""
+
     def wrap(*args, **kwargs):
         args[0].connect()
         a = func(*args, **kwargs)
@@ -14,6 +15,7 @@ def connect_close(func):
 
 def connect_dec(func):
     """Decorator to do connect to database"""
+
     def wrap(*args, **kwargs):
         args[0].connect()
         a = func(*args, **kwargs)
@@ -30,6 +32,7 @@ class db_help:
 
         self.connect()
         self.close()
+        self.unzip = lambda a: list(zip(*a))[0] if list(zip(*a)) else list(zip(*a))
 
     def connect(self):
         """Method to initialize connection with database"""
@@ -53,16 +56,24 @@ class db_help:
         * if you want to paste in all columns
         - info - list of information what we want to paste
         """
-        a = "'" + "', '".join(info) + "'"
-        column_formatted = ', '.join(column)
-        print(column_formatted)
-        print("INSERT OR IGNORE INTO {table} ({column}) VALUES ({quest} )".format(table=table, column=column_formatted,
-                                                                                 quest=a))
-        self.cursor.execute(
-            "INSERT OR IGNORE INTO {table} ({column}) VALUES ({quest})".format(table=table, column=column_formatted,
-                                                                               quest=a))
+        if info not in self.unzip(self.return_info(table, column)):
+            if isinstance(column, str):
+                column_formatted = column
+                a = "'" + info + "'"
+            else:
+                column_formatted = ', '.join(column)
+                a = "'" + "', '".join(info) + "'"
+            print(column_formatted)
+            print(
+                "INSERT OR IGNORE INTO {table} ({column}) VALUES ({quest})".format(table=table, column=column_formatted,
+                                                                                   quest=a))
+            self.cursor.execute(
+                "INSERT OR IGNORE INTO {table} ({column}) VALUES ({quest})".format(table=table, column=column_formatted,
+                                                                                   quest=a))
 
-        self.conn.commit()
+            self.conn.commit()
+        else:
+            print('We already had this info')
 
     @connect_close
     def delete_info(self, table, column, info):
@@ -75,13 +86,14 @@ class db_help:
         a = "'" + "', '".join(info) + "'"
         column_formatted = ', '.join(column)
         print("DELETE FROM {table} WHERE {column} = {quest})".format(table=table, column=column_formatted,
-                                                                                  quest=a))
+                                                                     quest=a))
         self.cursor.execute(
             "DELETE FROM {table} WHERE {column} = {quest})".format(table=table, column=column_formatted,
-                                                                                  quest=a))
+                                                                   quest=a))
 
         self.conn.commit()
-    @connect_close
+
+    @connect_dec
     def return_info(self, where, what='*'):
         """This method is return info
         - where - name of table where info is exists
@@ -92,8 +104,8 @@ class db_help:
     @connect_dec
     def have_db(self):
         """This method is returning names of all tables in database"""
-        names = list(zip(*self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' and "
-                                              "name NOT LIKE 'sqlite_%'")))[0]
+        names = self.unzip(self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' and "
+                                               "name NOT LIKE 'sqlite_%'"))
         return names
 
     @connect_close
