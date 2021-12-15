@@ -1,7 +1,7 @@
 import os
 
 from aiogram.types import ContentType
-
+import string
 import config
 import logging
 from Data_base.db_help_class import db_help
@@ -17,7 +17,7 @@ db = Dispatcher(bot)
 make_pdf = False
 photo_for_file = []
 
-data = db_help("Data_base\\queue.db")
+
 
 @db.message_handler(commands=["start"])
 async def start(message: types.message):
@@ -33,12 +33,14 @@ async def start(message: types.message):
 async def add(message: types.message):
     """The add method"""
     message.text = message.text.replace("/add ", "")
-    data.add_info('queue', ['name'], [str(message.text)])
+    message.text = message.text.strip()
+    data_base.add_info('queue', ['name'], [str(message.text)])
 @db.message_handler(commands=['delete'])
 async def delete(message: types.message):
     """The delete method"""
     message.text = message.text.replace("/delete ", "")
-    data.delete_info('queue', ['name'], [str(message.text)])
+    message.text = message.text.strip()
+    data_base.delete_info('queue', ['name'], [str(message.text)])
 @db.message_handler(commands=["queue"])
 async def help(message: types.message):
     await message.answer('Привет {}, небольшая инструкция для получения тебе нужного pdf файла с картинок:\n1) Введи '
@@ -50,3 +52,4 @@ async def help(message: types.message):
 #tr
 if __name__ == '__main__':
     executor.start_polling(db, skip_updates=True)
+
