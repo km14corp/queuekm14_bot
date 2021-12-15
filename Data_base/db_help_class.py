@@ -7,6 +7,7 @@ def connect_close(func):
     def wrap(*args, **kwargs):
         args[0].connect()
         a = func(*args, **kwargs)
+        args[0].conn.commit()
         args[0].close()
         return a
 
@@ -39,7 +40,6 @@ class db_help:
         try:
             self.conn = sqlite3.connect(self.db_name)
             self.cursor = self.conn.cursor()
-            print('Connect successes')
         except Exception as e:
             print(e)
 
@@ -61,44 +61,26 @@ class db_help:
         else:
             info_form = info[0]
         if info_form not in self.unzip(self.return_info(table, column)):
-            if isinstance(column, str):
-                column_formatted = column
+            if column == '*':
+                column_formatted = ""
+                a = "'" + "', '".join(info) + "'"
+
+            elif isinstance(column, str):
+                column_formatted = f'({column})'
                 a = "'" + info + "'"
             else:
-                column_formatted = ', '.join(column)
+                column_formatted = '(' + ', '.join(column) + ')'
                 a = "'" + "', '".join(info) + "'"
             print(column_formatted)
-            print(
-                "INSERT OR IGNORE INTO {table} ({column}) VALUES ({quest})".format(table=table, column=column_formatted,
-                                                                                   quest=a))
             self.cursor.execute(
-                "INSERT OR IGNORE INTO {table} ({column}) VALUES ({quest})".format(table=table, column=column_formatted,
-                                                                                   quest=a))
+                "INSERT OR IGNORE INTO {table} {column} VALUES ({quest})".format(table=table, column=column_formatted,
+                                                                                 quest=a))
 
-            self.conn.commit()
             return True
         else:
             print(self.unzip(self.return_info(table, column)))
             print('We already had this info')
             return False
-
-    @connect_close
-    def delete_info(self, table, column, info):
-        """Method to delete info from our table
-               - table - name of table from  we want to delete our info
-               - column - list of name of column(s) from we want to delete the info
-               * if you want to delete from all records
-               - info - list of information what we want to delete
-               """
-        a = "'" + "', '".join(info) + "'"
-        column_formatted = ', '.join(column)
-        print("DELETE FROM {table} WHERE {column} = {quest}".format(table=table, column=column_formatted,
-                                                                    quest=a))
-        self.cursor.execute(
-            "DELETE FROM {table} WHERE {column} = {quest}".format(table=table, column=column_formatted,
-                                                                  quest=a))
-
-        self.conn.commit()
 
     @connect_dec
     def return_info(self, where, what='*'):
@@ -139,6 +121,53 @@ class db_help:
         else:
             print('We haven`t the same table')
 
+    @connect_dec
+    def return_names(self, where):
+        """This method is return list of names from table with id
+        - where - name of table where info is exists"""
+        return_inf = self.cursor.execute(
+            "Select u.name FROM {where} w JOIN users u ON w.name=u.id".format(where=where)).fetchall()
+        return self.unzip(return_inf)
+
+    @connect_close
+    def update_name(self, person_id, name):
+        """This method is to update persons name
+        - id - persons id number
+        - name - name in what we want to change"""
+        if self.cursor.execute('SELECT name FROM users WHERE id={id}'.format(id=person_id)):
+            self.cursor.execute('UPDATE users'
+                                f" SET name = '{name}'"
+                                f" WHERE id = '{person_id}'")
+        else:
+            self.add_info('users', ['id', 'name'], [person_id, name])
+
+    @connect_close
+    def return_name(self, person_id):
+        """This method is returning persons name
+        - id - persons id number"""
+        if self.cursor.execute('SELECT name FROM users WHERE id={id}'.format(id=person_id)).fetchall():
+            a = self.cursor.execute('SELECT name FROM users WHERE id={id}'.format(id=person_id)).fetchall()
+            return self.unzip(a)[0]
+        else:
+            print('We haven`t your name in our database, please enter it')
+            return False
+
+    @connect_close
+    def delete_info(self, table, column, info):
+        """Method to delete info from our table
+               - table - name of table from  we want to delete our info
+               - column - list of name of column(s) from we want to delete the info
+               * if you want to delete from all records
+               - info - list of information what we want to delete
+               """
+        a = "'" + "', '".join(info) + "'"
+        column_formatted = ', '.join(column)
+        print("DELETE FROM {table} WHERE {column} = {quest}".format(table=table, column=column_formatted,
+                                                                    quest=a))
+        self.cursor.execute(
+            "DELETE FROM {table} WHERE {column} = {quest}".format(table=table, column=column_formatted,
+                                                                  quest=a))
+
     @connect_close
     def del_row(self, table, name, column='name'):
         """Method to delete row in database and move queue
@@ -158,5 +187,3 @@ class db_help:
             self.cursor.execute("UPDATE {table}"
                                 " SET number=number-1"
                                 " WHERE number>{a}".format(table=table, row=column, name=name, a=a))
-
-        self.conn.commit()
