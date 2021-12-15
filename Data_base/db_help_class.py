@@ -50,12 +50,13 @@ class db_help:
         """Method to add info into our table
         - table - name of table in with we want to paste our info
         - column - list of name of column(s) in with we want to paste the info
-        * if you want to pate in all columns
+        * if you want to paste in all columns
         - info - list of information what we want to paste
         """
         a = "'" + "', '".join(info) + "'"
         column_formatted = ', '.join(column)
-        print("INSERT OR IGNORE INTO {table} ({column}) VALUES ({quest})".format(table=table, column=column_formatted,
+        print(column_formatted)
+        print("INSERT OR IGNORE INTO {table} ({column}) VALUES ({quest} )".format(table=table, column=column_formatted,
                                                                                  quest=a))
         self.cursor.execute(
             "INSERT OR IGNORE INTO {table} ({column}) VALUES ({quest})".format(table=table, column=column_formatted,
@@ -63,6 +64,23 @@ class db_help:
 
         self.conn.commit()
 
+    @connect_close
+    def delete_info(self, table, column, info):
+        """Method to delete info from our table
+               - table - name of table from  we want to delete our info
+               - column - list of name of column(s) from we want to delete the info
+               * if you want to delete from all columns
+               - info - list of information what we want to delete
+               """
+        a = "'" + "', '".join(info) + "'"
+        column_formatted = ', '.join(column)
+        print("DELETE FROM {table} WHERE {column} = {quest})".format(table=table, column=column_formatted,
+                                                                                  quest=a))
+        self.cursor.execute(
+            "DELETE FROM {table} WHERE {column} = {quest})".format(table=table, column=column_formatted,
+                                                                                  quest=a))
+
+        self.conn.commit()
     @connect_close
     def return_info(self, where, what='*'):
         """This method is return info
