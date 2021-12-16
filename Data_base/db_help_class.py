@@ -1,4 +1,5 @@
 import sqlite3
+from functools import partial
 
 
 def connect_close(func):
@@ -82,6 +83,10 @@ class db_help:
             print('We already had this info')
             return False
 
+    def add_name_id(self, id, name):
+        """Method to make your adding id and name to the table 'user' easier"""
+        return self.add_info('users', '*',[id,name])
+
     @connect_dec
     def return_info(self, where, what='*'):
         """This method is return info
@@ -108,8 +113,10 @@ class db_help:
             self.cursor.execute("CREATE TABLE '{}' ("
                                 "number INTEGER PRIMARY KEY AUTOINCREMENT,"
                                 " name   STRING  UNIQUE)".format(name))
+            return True
         else:
             print('We already have the same table')
+            return False
 
     @connect_close
     def del_db(self, name):
@@ -118,8 +125,10 @@ class db_help:
         if name in self.have_db():
             self.cursor.execute("DROP TABLE '{}'".format(name))
             print('{} has deleted'.format(name))
+            return True
         else:
             print('We haven`t the same table')
+            return False
 
     @connect_dec
     def return_names(self, where):
@@ -187,3 +196,5 @@ class db_help:
             self.cursor.execute("UPDATE {table}"
                                 " SET number=number-1"
                                 " WHERE number>{a}".format(table=table, row=column, name=name, a=a))
+            return True
+        return False
