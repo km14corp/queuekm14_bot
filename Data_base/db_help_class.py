@@ -1,5 +1,4 @@
 import sqlite3
-from functools import partial
 
 
 def connect_close(func):
@@ -85,7 +84,7 @@ class db_help:
 
     def add_name_id(self, id, name):
         """Method to make your adding id and name to the table 'user' easier"""
-        return self.add_info('users', '*',[id,name])
+        return self.add_info('users', '*', [id, name])
 
     @connect_dec
     def return_info(self, where, what='*'):
