@@ -98,10 +98,10 @@ class db_help:
         return return_inf
 
     @connect_dec
-    def have_db(self):
+    def get_all_tables(self):
         """This method is returning names of all tables in database"""
-        names = list(zip(*self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' and "
-                                              "name NOT LIKE 'sqlite_%'")))[0]
+        names = list(list(zip(*self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' and "
+                                              "name NOT LIKE 'sqlite_%'")))[0])
         return names
 
     @connect_close
