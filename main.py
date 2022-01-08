@@ -69,7 +69,7 @@ async def get_queue(callback_query: types.CallbackQuery):
     for x in data_base.return_info(callback_query.data):
         message += (str(x[0]) + ") " + str(x[1]) + "\n")
     # print(message)
-    if(len(message) == 0):
+    if len(message) == 0:
         await bot.send_message(callback_query.from_user.id, "Эта очередь пустая")
     else:
         await bot.send_message(callback_query.from_user.id, message)
@@ -127,6 +127,11 @@ async def set_name(message: types.Message):
 @dispatcher.callback_query_handler(state=State_machine.YES_STATE)
 async def get_queue(callback_query: types.CallbackQuery):
     data_base.add_info(callback_query.data, ['name'], [str(data_base.return_name(callback_query.from_user.id))])
+    await bot.send_message(callback_query.from_user.id, "Ты успешно записался в очередь " + callback_query.data)
+    message = ""
+    for x in data_base.return_info(callback_query.data):
+        message += (str(x[0]) + ") " + str(x[1]) + "\n")
+    await bot.send_message(callback_query.from_user.id, message)
     await State_machine.START_STATE.set()
     await bot.send_message(callback_query.from_user.id, "Что дальше?)",
                            reply_markup=keyboard_start)
