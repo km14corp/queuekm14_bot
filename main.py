@@ -21,6 +21,7 @@ dispatcher = Dispatcher(bot, storage=MemoryStorage())
 class State_machine(StatesGroup):
     VIEW_STATE = State()
     START_STATE = State()
+    DELETE_STATE = State()
     ENROLL_STATE = State()
     NAME_STATE = State()
     NAME_FLAG_STATE = State()
@@ -52,6 +53,28 @@ async def view(callback_query: types.CallbackQuery):
     await bot.send_message(callback_query.from_user.id, "Выбери очередь, которую хочешь просмотреть",
                            reply_markup=make_markup(queues))
     await State_machine.VIEW_STATE.set()
+
+@dispatcher.callback_query_handler(lambda c: c.data == 'delete', state=State_machine.START_STATE)
+async def get_queue_to_delete(callback_query: types.CallbackQuery):
+    queues = list(data_base.get_all_tables())
+    queues.remove('users')
+    await bot.send_message(callback_query.from_user.id, "Выбери очередь, из которой хочешь выписаться",
+                           reply_markup=make_markup(queues))
+    await State_machine.DELETE_STATE.set()
+
+
+
+@dispatcher.callback_query_handler(state=State_machine.DELETE_STATE)
+async def delete(callback_query: types.CallbackQuery):
+    print(callback_query.from_user.id, callback_query.data)
+    if not data_base.check_id_in_table(callback_query.from_user.id, callback_query.data):
+        await bot.send_message(callback_query.from_user.id, "Вы не записывались в эту очередь")
+    else:
+        data_base.delete_info(callback_query.data, ['id'] ,[str(callback_query.from_user.id)])
+        await bot.send_message(callback_query.from_user.id, "Вы были успешно удалены из этой очереди")
+    await bot.send_message(callback_query.from_user.id, "Что дальше?)",
+                           reply_markup=keyboard_start)
+    await State_machine.START_STATE.set()
 
 
 @dispatcher.callback_query_handler(state=State_machine.VIEW_STATE)

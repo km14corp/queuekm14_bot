@@ -7,7 +7,8 @@ keyboard_bool = InlineKeyboardMarkup().add(button1, button2)
 
 button1 = InlineKeyboardButton('Записаться в очередь', callback_data='enroll')
 button2 = InlineKeyboardButton('Просмотреть очередь', callback_data='view')
-keyboard_start = InlineKeyboardMarkup().add(button1, button2)
+button3 = InlineKeyboardButton('Выписаться из очереди', callback_data='delete')
+keyboard_start = InlineKeyboardMarkup(row_width=2).add(button2, button3, button1)
 
 def make_markup(list_of_items):
     keyboard = InlineKeyboardMarkup()
