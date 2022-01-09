@@ -118,7 +118,7 @@ class db_help:
             return False
 
     @connect_close
-    def del_db(self, name):
+    def delete_db(self, name):
         """Method to delete database
         - name - name of database we want to delete"""
         if name in self.have_db():
@@ -161,31 +161,15 @@ class db_help:
             return False
 
     @connect_close
-    def check_id_in_table(self, person_id, table):
+    def check_id_in_queue(self, person_id, table):
         """This method is returning persons name
         - id - persons id number"""
         if self.cursor.execute('SELECT id FROM {table} WHERE id={id}'.format(id=person_id, table=table)).fetchall():
-            a = self.cursor.execute('SELECT id FROM {table} WHERE id={id}'.format(id=person_id, table=table)).fetchall()
             return True
         else:
             print('We haven`t your name in our database, please enter it')
             return False
 
-    @connect_close
-    def delete_info(self, table, column, info):
-        """Method to delete info from our table
-               - table - name of table from  we want to delete our info
-               - column - list of name of column(s) from we want to delete the info
-               * if you want to delete from all records
-               - info - list of information what we want to delete
-               """
-        a = "'" + "', '".join(info) + "'"
-        column_formatted = ', '.join(column)
-        print("DELETE FROM {table} WHERE {column} = {quest}".format(table=table, column=column_formatted,
-                                                                    quest=a))
-        self.cursor.execute(
-            "DELETE FROM {table} WHERE {column} = {quest}".format(table=table, column=column_formatted,
-                                                                  quest=a))
 
     @connect_dec
     def have_db(self):
@@ -195,23 +179,23 @@ class db_help:
         return names
 
     @connect_close
-    def del_row(self, table, name, column='name'):
+    def delete_info(self, table, column, id):
         """Method to delete row in database and move queue
          - table - name of table in with we want to paste our info
         - name - name what we want to delete
         - column - name of column where name is settle down
         """
         if list(self.cursor.execute("SELECT number "
-                                    " FROM {table} WHERE {row}='{name}'".format(table=table, name=name,
+                                    " FROM {table} WHERE {row}='{name}'".format(table=table, name=id,
                                                                                 row=column))):
             a = list(self.cursor.execute("SELECT number "
-                                         " FROM {table} WHERE {row}='{name}'".format(table=table, name=name,
+                                         " FROM {table} WHERE {row}='{name}'".format(table=table, name=id,
                                                                                      row=column)))[0][0]
             print(a)
             self.cursor.execute("DELETE FROM {table}"
-                                " WHERE {row}='{name}'".format(row=column, table=table, name=name))
+                                " WHERE {row}='{name}'".format(row=column, table=table, name=id))
             self.cursor.execute("UPDATE {table}"
                                 " SET number=number-1"
-                                " WHERE number>{a}".format(table=table, row=column, name=name, a=a))
+                                " WHERE number>{a}".format(table=table, row=column, name=id, a=a))
             return True
         return False

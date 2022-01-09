@@ -34,7 +34,7 @@ class State_machine(StatesGroup):
 async def start(message: types.message):
     """The start method"""
     await bot.send_message(message.from_user.id,
-                           "Привет, я бот для того чтобы записываться в очередь, только для КМ-14😘",
+                           "Привет, я бот для того чтобы записываться в очередь, только для КМ-14😜",
                            reply_markup=keyboard_start)
 
     await State_machine.START_STATE.set()
@@ -64,13 +64,13 @@ async def get_queue_to_delete(callback_query: types.CallbackQuery):
 
 
 
+
 @dispatcher.callback_query_handler(state=State_machine.DELETE_STATE)
 async def delete(callback_query: types.CallbackQuery):
-    print(callback_query.from_user.id, callback_query.data)
-    if not data_base.check_id_in_table(callback_query.from_user.id, callback_query.data):
+    if not data_base.check_id_in_queue(callback_query.from_user.id, callback_query.data):
         await bot.send_message(callback_query.from_user.id, "Вы не записывались в эту очередь")
     else:
-        data_base.delete_info(callback_query.data, ['id'] ,[str(callback_query.from_user.id)])
+        data_base.delete_info(callback_query.data, 'id', str(callback_query.from_user.id))
         await bot.send_message(callback_query.from_user.id, "Вы были успешно удалены из этой очереди")
     await bot.send_message(callback_query.from_user.id, "Что дальше?)",
                            reply_markup=keyboard_start)
@@ -94,7 +94,12 @@ async def get_queue(callback_query: types.CallbackQuery):
 @dispatcher.callback_query_handler(lambda c: c.data == 'enroll', state=State_machine.ENROLL_STATE)
 async def get_name(callback_query: types.CallbackQuery):
     if not data_base.return_name(callback_query.from_user.id):
-        name = callback_query.from_user.first_name + " " + callback_query.from_user.last_name
+        name = ""
+        if callback_query.from_user.first_name is not None:
+            name += callback_query.from_user.first_name
+        name += " "
+        if callback_query.from_user.last_name is not None:
+            name += callback_query.from_user.last_name
     else:
         name = data_base.return_name(callback_query.from_user.id)
 
@@ -107,8 +112,14 @@ async def get_name(callback_query: types.CallbackQuery):
 @dispatcher.callback_query_handler(lambda c: c.data == 'yes', state=State_machine.NAME_FLAG_STATE)
 async def press_yes(callback_query: types.CallbackQuery):
     if not data_base.return_name(callback_query.from_user.id):
+        name = ""
+        if callback_query.from_user.first_name is not None:
+            name += callback_query.from_user.first_name
+        name += " "
+        if callback_query.from_user.last_name is not None:
+            name += callback_query.from_user.last_name
         data_base.add_name_id(str(callback_query.from_user.id),
-                              callback_query.from_user.first_name + " " + callback_query.from_user.last_name)
+                              name)
     queues = list(data_base.get_all_tables())
     queues.remove('users')
     await bot.send_message(callback_query.from_user.id, "Выбери очередь, в которую хочешь записаться",
@@ -140,8 +151,10 @@ async def set_name(message: types.Message):
 @dispatcher.callback_query_handler(state=State_machine.YES_STATE)
 async def join_queue(callback_query: types.CallbackQuery):
     message = ""
-    if not data_base.check_id_in_table(callback_query.from_user.id, callback_query.data):
-        data_base.add_info(callback_query.data, ['id'], [str(callback_query.from_user.id)])
+
+    if not data_base.check_id_in_queue(callback_query.from_user.id, callback_query.data):
+        data_base.add_info(callback_query.data, ['number', 'id'], [str(len(data_base.return_info(callback_query.data)) + 1),
+                                                                       str(callback_query.from_user.id)])
         await bot.send_message(callback_query.from_user.id, "Ты успешно записался в очередь " + callback_query.data)
     else:
         await bot.send_message(callback_query.from_user.id, "Вы уже записаны в эту очередь")
