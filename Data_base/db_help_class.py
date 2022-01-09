@@ -111,7 +111,7 @@ class db_help:
         if name not in self.have_db():
             self.cursor.execute("CREATE TABLE '{}' ("
                                 "number INTEGER PRIMARY KEY AUTOINCREMENT,"
-                                " name   STRING  UNIQUE)".format(name))
+                                " id   STRING  UNIQUE)".format(name))
             return True
         else:
             print('We already have the same table')
@@ -161,6 +161,17 @@ class db_help:
             return False
 
     @connect_close
+    def check_id_in_table(self, person_id, table):
+        """This method is returning persons name
+        - id - persons id number"""
+        if self.cursor.execute('SELECT id FROM {table} WHERE id={id}'.format(id=person_id, table=table)).fetchall():
+            a = self.cursor.execute('SELECT id FROM {table} WHERE id={id}'.format(id=person_id, table=table)).fetchall()
+            return True
+        else:
+            print('We haven`t your name in our database, please enter it')
+            return False
+
+    @connect_close
     def delete_info(self, table, column, info):
         """Method to delete info from our table
                - table - name of table from  we want to delete our info
@@ -175,6 +186,13 @@ class db_help:
         self.cursor.execute(
             "DELETE FROM {table} WHERE {column} = {quest}".format(table=table, column=column_formatted,
                                                                   quest=a))
+
+    @connect_dec
+    def have_db(self):
+        """This method is returning names of all tables in database"""
+        names = list(zip(*self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' and "
+                                              "name NOT LIKE 'sqlite_%'")))[0]
+        return names
 
     @connect_close
     def del_row(self, table, name, column='name'):
