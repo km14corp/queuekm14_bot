@@ -4,6 +4,7 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
+from aiogram.types import InlineKeyboardButton
 from aiogram.utils.helper import HelperMode, ListItem, Helper
 from keyword import *
 import config
@@ -30,7 +31,7 @@ class State_machine(StatesGroup):
     NO_STATE = State()
 
 
-@dispatcher.message_handler(commands=["start"], state=None)
+@dispatcher.message_handler(commands=["start"], state='*')
 async def start(message: types.message):
     """The start method"""
     await bot.send_message(message.from_user.id,
@@ -54,15 +55,21 @@ async def view(callback_query: types.CallbackQuery):
                            reply_markup=make_markup(queues))
     await State_machine.VIEW_STATE.set()
 
+
 @dispatcher.callback_query_handler(lambda c: c.data == 'delete', state=State_machine.START_STATE)
 async def get_queue_to_delete(callback_query: types.CallbackQuery):
     queues = list(data_base.get_all_tables())
     queues.remove('users')
     await bot.send_message(callback_query.from_user.id, "Выбери очередь, из которой хочешь выписаться",
-                           reply_markup=make_markup(queues))
+                           reply_markup=make_markup(queues).add(InlineKeyboardButton('Назад⬅', callback_data='back')))
     await State_machine.DELETE_STATE.set()
 
 
+@dispatcher.callback_query_handler(lambda c: c.data == 'back', state=State_machine.DELETE_STATE)
+async def get_back(callback_query: types.CallbackQuery):
+    await State_machine.START_STATE.set()
+    await bot.send_message(callback_query.from_user.id, "Что дальше?)",
+                           reply_markup=keyboard_start)
 
 
 @dispatcher.callback_query_handler(state=State_machine.DELETE_STATE)
@@ -153,8 +160,9 @@ async def join_queue(callback_query: types.CallbackQuery):
     message = ""
 
     if not data_base.check_id_in_queue(callback_query.from_user.id, callback_query.data):
-        data_base.add_info(callback_query.data, ['number', 'id'], [str(len(data_base.return_info(callback_query.data)) + 1),
-                                                                       str(callback_query.from_user.id)])
+        data_base.add_info(callback_query.data, ['number', 'id'],
+                           [str(len(data_base.return_info(callback_query.data)) + 1),
+                            str(callback_query.from_user.id)])
         await bot.send_message(callback_query.from_user.id, "Ты успешно записался в очередь " + callback_query.data)
     else:
         await bot.send_message(callback_query.from_user.id, "Вы уже записаны в эту очередь")
