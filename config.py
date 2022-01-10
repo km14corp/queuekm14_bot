@@ -1,3 +1,3 @@
-import os
+from decouple import config
 
-TOKEN = os.environ.get("TOKEN")
+TOKEN = config('TOKEN')
