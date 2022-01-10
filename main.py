@@ -9,7 +9,9 @@ from Data_base.db_help_class import db_help
 from keybord import keyboard_bool, make_markup, keyboard_start
 import config
 import schedule_parser as sc
-from config import url
+
+
+url = "http://rozklad.kpi.ua/Schedules/ViewSchedule.aspx?g=8bb9bcf6-5db2-4124-8c1a-d0debc152bc9"
 
 logging.basicConfig(level=logging.INFO)
 
