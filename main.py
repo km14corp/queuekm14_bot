@@ -5,9 +5,11 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import InlineKeyboardButton
 
-import config
 from Data_base.db_help_class import db_help
 from keybord import keyboard_bool, make_markup, keyboard_start
+import config
+import schedule_parser as sc
+from config import url
 
 logging.basicConfig(level=logging.INFO)
 
@@ -15,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 data_base = db_help('Data_base/queue.db')
 bot = Bot(token=config.TOKEN)
 dispatcher = Dispatcher(bot, storage=MemoryStorage())
-
+subs = 'MA-1'
 
 class State_machine(StatesGroup):
     VIEW_STATE = State()
@@ -41,6 +43,7 @@ async def start(message: types.message):
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'enroll', state=State_machine.START_STATE)
 async def enroll(callback_query: types.CallbackQuery):
+    sc.queue_manager(subs, url)
     await State_machine.ENROLL_STATE.set()
     await get_name(callback_query)
 
