@@ -2,11 +2,9 @@ import logging
 
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import InlineKeyboardButton
-from aiogram.utils.helper import HelperMode, ListItem, Helper
-from keyword import *
+
 import config
 from Data_base.db_help_class import db_help
 from keybord import keyboard_bool, make_markup, keyboard_start

@@ -1,5 +1,4 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from Data_base.db_help_class import db_help
 
 button1 = InlineKeyboardButton('Да', callback_data='yes')
 button2 = InlineKeyboardButton('Нет', callback_data='no')
