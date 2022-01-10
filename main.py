@@ -1,5 +1,5 @@
 import logging
-
+import sqlite3
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -10,7 +10,6 @@ from keybord import keyboard_bool, make_markup, keyboard_start
 import config
 import schedule_parser as sc
 
-
 url = "http://rozklad.kpi.ua/Schedules/ViewSchedule.aspx?g=8bb9bcf6-5db2-4124-8c1a-d0debc152bc9"
 
 logging.basicConfig(level=logging.INFO)
@@ -20,6 +19,7 @@ data_base = db_help('Data_base/queue.db')
 bot = Bot(token=config.TOKEN)
 dispatcher = Dispatcher(bot, storage=MemoryStorage())
 subs = 'MA-1'
+
 
 class State_machine(StatesGroup):
     VIEW_STATE = State()
@@ -175,6 +175,38 @@ async def join_queue(callback_query: types.CallbackQuery):
     await State_machine.START_STATE.set()
     await bot.send_message(callback_query.from_user.id, "Что дальше?)",
                            reply_markup=keyboard_start)
+
+
+@dispatcher.message_handler(state='*', commands=['add_course'])
+async def admin_course_add(message: types.Message):
+    if message.from_user.id in [327601961, 405856902, 558259766]:
+        data_base.add_info('cources_we_create', 'name', message.get_args())
+
+
+@dispatcher.message_handler(state='*', commands=['delete_course'])
+async def admin_course_add(message: types.Message):
+    if message.from_user.id in [327601961, 405856902, 558259766]:
+        data_base.delete_info('cources_we_create', 'name', message.get_args())
+
+
+@dispatcher.message_handler(state='*', commands=['add_queue'])
+async def admin_course_add(message: types.Message):
+    if message.from_user.id in [327601961, 405856902, 558259766]:
+        data_base.make_db(message.get_args())
+
+
+@dispatcher.message_handler(state='*', commands=['delete_queue'])
+async def admin_course_add(message: types.Message):
+    if message.from_user.id in [327601961, 405856902, 558259766]:
+        data_base.delete_db(message.get_args())
+
+
+@dispatcher.message_handler(state='*', commands=['show_table'])
+async def admin_course_add(message: types.Message):
+    if message.from_user.id in [327601961, 405856902, 558259766]:
+        table = [str(i) for i in data_base.get_info(message.get_args())]
+
+        await bot.send_message(message.from_user.id, '\n'.join(table))
 
 
 if __name__ == '__main__':

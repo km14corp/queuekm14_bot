@@ -101,7 +101,7 @@ class db_help:
     def get_all_tables(self):
         """This method is returning names of all tables in database"""
         names = list(list(zip(*self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' and "
-                                              "name NOT LIKE 'sqlite_%'")))[0])
+                                                   "name NOT LIKE 'sqlite_%'")))[0])
         return names
 
     @connect_close
@@ -150,6 +150,16 @@ class db_help:
             self.add_info('users', ['id', 'name'], [person_id, name])
 
     @connect_close
+    def get_info(self, table):
+        try:
+            a = self.cursor.execute('SELECT * FROM {table}'.format(table=table)).fetchall()
+            print("i am here")
+            print(a)
+            return a
+        except:
+            print("Something went wrong in get_info()")
+
+    @connect_close
     def return_name(self, person_id):
         """This method is returning persons name
         - id - persons id number"""
@@ -169,7 +179,6 @@ class db_help:
         else:
             print('We haven`t your name in our database, please enter it')
             return False
-
 
     @connect_dec
     def have_db(self):
