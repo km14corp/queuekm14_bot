@@ -7,8 +7,7 @@ import sqlite3
 
 
 url = "http://rozklad.kpi.ua/Schedules/ViewSchedule.aspx?g=8bb9bcf6-5db2-4124-8c1a-d0debc152bc9"
-#data_base = db_help('test.db')
-a = "МА-1"
+
 
 
 def queue_manager(sub, sub_url):
@@ -42,7 +41,7 @@ def queue_manager(sub, sub_url):
         check_sub = " ".join((i, str(d1 - timedelta(days=7))))
         if sub.lower() == i.lower() and now > today7pm and check_sub not in conn.cursor().fetchall():
             print("Удаление очереди", check_sub)
-            conn.execute("DROP TABLE '{}'".format(check_sub))
+            # conn.execute("DROP TABLE '{}'".format(check_sub))
 
     if sub.lower() == closest_sub.lower():
         add_sub = " ".join((closest_sub, str(d1 + timedelta(days=1))))

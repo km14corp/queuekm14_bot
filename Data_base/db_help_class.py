@@ -71,15 +71,16 @@ class db_help:
             else:
                 column_formatted = '(' + ', '.join(column) + ')'
                 a = "'" + "', '".join(info) + "'"
-            print(column_formatted)
+            print("INSERT OR IGNORE INTO '{table}' {column} VALUES ({quest})".format(table=table, column=column_formatted,
+                                                                                 quest=a))
             self.cursor.execute(
                 "INSERT OR IGNORE INTO '{table}' {column} VALUES ({quest})".format(table=table, column=column_formatted,
                                                                                  quest=a))
 
             return True
         else:
-            print(self.unzip(self.return_info(table, column)))
-            print('We already had this info')
+            # print(self.unzip(self.return_info(table, column)))
+            # print('We already had this info')
             return False
 
     def add_name_id(self, id, name):
@@ -149,12 +150,10 @@ class db_help:
         else:
             self.add_info('users', ['id', 'name'], [person_id, name])
 
-    @connect_close
+    @connect_dec
     def get_info(self, table):
         try:
             a = self.cursor.execute('SELECT * FROM {table}'.format(table=table)).fetchall()
-            print("i am here")
-            print(a)
             return a
         except:
             print("Something went wrong in get_info()")
@@ -170,7 +169,7 @@ class db_help:
             print('We haven`t your name in our database, please enter it')
             return False
 
-    @connect_close
+    @connect_dec
     def check_id_in_queue(self, person_id, table):
         """This method is returning persons name
         - id - persons id number"""
@@ -195,15 +194,14 @@ class db_help:
         - column - name of column where name is settle down
         """
         if list(self.cursor.execute("SELECT number "
-                                    " FROM {table} WHERE {row}='{name}'".format(table=table, name=id,
+                                    " FROM '{table}' WHERE {row}='{name}'".format(table=table, name=id,
                                                                                 row=column))):
             a = list(self.cursor.execute("SELECT number "
-                                         " FROM {table} WHERE {row}='{name}'".format(table=table, name=id,
+                                         " FROM '{table}' WHERE {row}='{name}'".format(table=table, name=id,
                                                                                      row=column)))[0][0]
-            print(a)
-            self.cursor.execute("DELETE FROM {table}"
+            self.cursor.execute("DELETE FROM '{table}'"
                                 " WHERE {row}='{name}'".format(row=column, table=table, name=id))
-            self.cursor.execute("UPDATE {table}"
+            self.cursor.execute("UPDATE '{table}'"
                                 " SET number=number-1"
                                 " WHERE number>{a}".format(table=table, row=column, name=id, a=a))
             return True
