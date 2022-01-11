@@ -54,6 +54,7 @@ async def enroll(callback_query: types.CallbackQuery):
 async def view(callback_query: types.CallbackQuery):
     queues = list(data_base.get_all_tables())
     queues.remove('users')
+    queues.remove('cources_we_create')
     await bot.send_message(callback_query.from_user.id, "Выбери очередь, которую хочешь просмотреть",
                            reply_markup=make_markup(queues))
     await State_machine.VIEW_STATE.set()
@@ -63,6 +64,7 @@ async def view(callback_query: types.CallbackQuery):
 async def get_queue_to_delete(callback_query: types.CallbackQuery):
     queues = list(data_base.get_all_tables())
     queues.remove('users')
+    queues.remove('cources_we_create')
     await bot.send_message(callback_query.from_user.id, "Выбери очередь, из которой хочешь выписаться",
                            reply_markup=make_markup(queues).add(InlineKeyboardButton('Назад⬅', callback_data='back')))
     await State_machine.DELETE_STATE.set()
@@ -132,6 +134,7 @@ async def press_yes(callback_query: types.CallbackQuery):
                               name)
     queues = list(data_base.get_all_tables())
     queues.remove('users')
+    queues.remove('cources_we_create')
     await bot.send_message(callback_query.from_user.id, "Выбери очередь, в которую хочешь записаться",
                            reply_markup=make_markup(queues))
 
@@ -184,19 +187,19 @@ async def admin_course_add(message: types.Message):
 
 
 @dispatcher.message_handler(state='*', commands=['delete_course'])
-async def admin_course_add(message: types.Message):
+async def admin_course_delete(message: types.Message):
     if message.from_user.id in [327601961, 405856902, 558259766]:
         data_base.delete_info('cources_we_create', 'name', message.get_args())
 
 
 @dispatcher.message_handler(state='*', commands=['add_queue'])
-async def admin_course_add(message: types.Message):
+async def admin_queue_add(message: types.Message):
     if message.from_user.id in [327601961, 405856902, 558259766]:
         data_base.make_db(message.get_args())
 
 
 @dispatcher.message_handler(state='*', commands=['delete_queue'])
-async def admin_course_add(message: types.Message):
+async def admin_queue_delete(message: types.Message):
     if message.from_user.id in [327601961, 405856902, 558259766]:
         data_base.delete_db(message.get_args())
 

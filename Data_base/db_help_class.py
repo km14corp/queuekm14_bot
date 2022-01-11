@@ -94,7 +94,7 @@ class db_help:
         if not isinstance(what, str):
             what = ', '.join(what)
 
-        return_inf = self.cursor.execute("SELECT {what} FROM {where}".format(what=what, where=where)).fetchall()
+        return_inf = self.cursor.execute("SELECT {what} FROM '{where}'".format(what=what, where=where)).fetchall()
         return return_inf
 
     @connect_dec
@@ -134,7 +134,7 @@ class db_help:
         """This method is return list of names from table with id
         - where - name of table where info is exists"""
         return_inf = self.cursor.execute(
-            "Select u.name FROM {where} w JOIN users u ON w.name=u.id".format(where=where)).fetchall()
+            "Select u.name FROM '{where}' w JOIN 'users' u ON w.name=u.id".format(where=where)).fetchall()
         return self.unzip(return_inf)
 
     @connect_close
@@ -174,7 +174,7 @@ class db_help:
     def check_id_in_queue(self, person_id, table):
         """This method is returning persons name
         - id - persons id number"""
-        if self.cursor.execute('SELECT id FROM {table} WHERE id={id}'.format(id=person_id, table=table)).fetchall():
+        if self.cursor.execute("SELECT id FROM '{table}' WHERE id={id}".format(id=person_id, table=table)).fetchall():
             return True
         else:
             print('We haven`t your name in our database, please enter it')

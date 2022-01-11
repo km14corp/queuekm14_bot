@@ -47,5 +47,5 @@ def queue_manager(sub, sub_url):
     if sub.lower() == closest_sub.lower():
         add_sub = " ".join((closest_sub, str(d1 + timedelta(days=1))))
         print("Создание очереди", add_sub)
-        c.execute("CREATE TABLE IF NOT EXISTS '{}' (number INTEGER PRIMARY KEY AUTOINCREMENT, name   STRING  UNIQUE)".format(add_sub))
+        c.execute("CREATE TABLE IF NOT EXISTS '{}' (number INTEGER PRIMARY KEY AUTOINCREMENT, id   STRING  UNIQUE)".format(add_sub))
 
