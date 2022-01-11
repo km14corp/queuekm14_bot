@@ -57,9 +57,16 @@ async def view(callback_query: types.CallbackQuery):
     queues = list(data_base.get_all_tables())
     queues.remove('users')
     queues.remove('courses')
-    await bot.send_message(callback_query.from_user.id, "Выбери очередь, которую хочешь просмотреть",
-                           reply_markup=make_markup(queues))
-    await State_machine.VIEW_STATE.set()
+    if len(queues) != 0:
+        await bot.send_message(callback_query.from_user.id, "Выбери очередь, которую хочешь просмотреть",
+                               reply_markup=make_markup(queues))
+        await State_machine.VIEW_STATE.set()
+    else:
+        await bot.send_message(callback_query.from_user.id, "В данный момент нет никаких очередей")
+        await State_machine.START_STATE.set()
+        await bot.send_message(callback_query.from_user.id, "Что дальше?)",
+                               reply_markup=keyboard_start)
+
 
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'delete', state=State_machine.START_STATE)
@@ -67,9 +74,15 @@ async def get_queue_to_delete(callback_query: types.CallbackQuery):
     queues = list(data_base.get_all_tables())
     queues.remove('users')
     queues.remove('courses')
-    await bot.send_message(callback_query.from_user.id, "Выбери очередь, из которой хочешь выписаться",
-                           reply_markup=make_markup(queues).add(InlineKeyboardButton('Назад⬅', callback_data='back')))
-    await State_machine.DELETE_STATE.set()
+    if len(queues) != 0:
+        await bot.send_message(callback_query.from_user.id, "Выбери очередь, из которой хочешь выписаться",
+                               reply_markup=make_markup(queues).add(InlineKeyboardButton('Назад⬅', callback_data='back')))
+        await State_machine.DELETE_STATE.set()
+    else:
+        await bot.send_message(callback_query.from_user.id, "В данный момент нет никаких очередей")
+        await State_machine.START_STATE.set()
+        await bot.send_message(callback_query.from_user.id, "Что дальше?)",
+                               reply_markup=keyboard_start)
 
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'back', state=State_machine.DELETE_STATE)
@@ -137,10 +150,15 @@ async def press_yes(callback_query: types.CallbackQuery):
     queues = list(data_base.get_all_tables())
     queues.remove('users')
     queues.remove('courses')
-    await bot.send_message(callback_query.from_user.id, "Выбери очередь, в которую хочешь записаться",
-                           reply_markup=make_markup(queues))
-
-    await State_machine.YES_STATE.set()
+    if len(queues) != 0:
+        await bot.send_message(callback_query.from_user.id, "Выбери очередь, в которую хочешь записаться",
+                               reply_markup=make_markup(queues))
+        await State_machine.YES_STATE.set()
+    else:
+        await bot.send_message(callback_query.from_user.id, "В данный момент нет никаких очередей")
+        await State_machine.START_STATE.set()
+        await bot.send_message(callback_query.from_user.id, "Что дальше?)",
+                               reply_markup=keyboard_start)
 
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'no', state=State_machine.NAME_FLAG_STATE)
