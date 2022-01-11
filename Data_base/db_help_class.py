@@ -73,7 +73,7 @@ class db_help:
                 a = "'" + "', '".join(info) + "'"
             print(column_formatted)
             self.cursor.execute(
-                "INSERT OR IGNORE INTO {table} {column} VALUES ({quest})".format(table=table, column=column_formatted,
+                "INSERT OR IGNORE INTO '{table}' {column} VALUES ({quest})".format(table=table, column=column_formatted,
                                                                                  quest=a))
 
             return True
