@@ -1,6 +1,7 @@
 import sqlite3
 
 
+# SELECT (number+1) from bookings where event_id=1 ORDER by number desc LIMIT 1; to get new next available number in the queue
 def connect_close(func):
     """Decorator to do connect to database, and close connection"""
 
@@ -71,11 +72,12 @@ class db_help:
             else:
                 column_formatted = '(' + ', '.join(column) + ')'
                 a = "'" + "', '".join(info) + "'"
-            print("INSERT OR IGNORE INTO '{table}' {column} VALUES ({quest})".format(table=table, column=column_formatted,
-                                                                                 quest=a))
+            print(
+                "INSERT OR IGNORE INTO '{table}' {column} VALUES ({quest})".format(table=table, column=column_formatted,
+                                                                                   quest=a))
             self.cursor.execute(
                 "INSERT OR IGNORE INTO '{table}' {column} VALUES ({quest})".format(table=table, column=column_formatted,
-                                                                                 quest=a))
+                                                                                   quest=a))
 
             return True
         else:
@@ -195,10 +197,10 @@ class db_help:
         """
         if list(self.cursor.execute("SELECT number "
                                     " FROM '{table}' WHERE {row}='{name}'".format(table=table, name=id,
-                                                                                row=column))):
+                                                                                  row=column))):
             a = list(self.cursor.execute("SELECT number "
                                          " FROM '{table}' WHERE {row}='{name}'".format(table=table, name=id,
-                                                                                     row=column)))[0][0]
+                                                                                       row=column)))[0][0]
             self.cursor.execute("DELETE FROM '{table}'"
                                 " WHERE {row}='{name}'".format(row=column, table=table, name=id))
             self.cursor.execute("UPDATE '{table}'"
