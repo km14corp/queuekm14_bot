@@ -8,7 +8,7 @@ from aiogram.types import InlineKeyboardButton
 from Data_base.db_help_class import db_help
 from keybord import keyboard_bool, make_markup, keyboard_start
 import config
-import schedule_parser as sc
+import schedule_parse as sc
 
 url = "http://rozklad.kpi.ua/Schedules/ViewSchedule.aspx?g=8bb9bcf6-5db2-4124-8c1a-d0debc152bc9"
 
@@ -18,6 +18,7 @@ logging.basicConfig(level=logging.INFO)
 data_base = db_help('Data_base/queue.db')
 bot = Bot(token=config.TOKEN)
 dispatcher = Dispatcher(bot, storage=MemoryStorage())
+subs1 = ["Дискретна математика 1"]
 
 
 class State_machine(StatesGroup):
@@ -46,8 +47,7 @@ async def start(message: types.message):
 async def enroll(callback_query: types.CallbackQuery):
     subs = data_base.get_info('courses')
     for sub in subs:
-        print(sub)
-        sc.queue_manager(sub[1], url)
+        sc.main(str(sub[1]), data_base)
     await State_machine.ENROLL_STATE.set()
     await get_name(callback_query)
 
@@ -66,7 +66,6 @@ async def view(callback_query: types.CallbackQuery):
         await State_machine.START_STATE.set()
         await bot.send_message(callback_query.from_user.id, "Что дальше?)",
                                reply_markup=keyboard_start)
-
 
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'delete', state=State_machine.START_STATE)
