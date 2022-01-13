@@ -41,7 +41,6 @@ class db_help:
         self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()
 
-
     def close(self):
         """Method to close connection with database"""
         if self.conn:
@@ -95,7 +94,6 @@ class db_help:
             f"SELECT {what} FROM '{table}' WHERE {where}").fetchall()
         return return_inf
 
-
     def get_courses(self, what='*'):
         result = self.get_info('courses', what)
         self.connect()
@@ -104,11 +102,10 @@ class db_help:
         else:
             return self.unzip(result)
 
-
     @connect_close_decorator
     def get_event_id(self, name):
         print(f"SELECT id FROM events WHERE name='{name}'")
-        result = self.cursor.execute(f"SELECT id FROM events WHERE name='{name}").fetchall()
+        result = self.cursor.execute(f"SELECT id FROM events WHERE name='{name}'").fetchall()
         print(result)
         return result[0][0]
 
@@ -159,6 +156,7 @@ class db_help:
 
     @connect_close_decorator
     def get_user_name(self, person_id):
+
         """This method is returning persons name
         - id - persons id number"""
         if self.cursor.execute(f'SELECT name FROM users WHERE id={id}').fetchall():
@@ -181,7 +179,6 @@ class db_help:
 
         print(f"DELETE FROM bookings WHERE event_id = {event_id}")
         print(f"DELETE FROM events WHERE course_id = {course_id}")
-
 
         self.cursor.execute(f"DELETE FROM bookings WHERE event_id = {event_id}")
         self.cursor.execute(
