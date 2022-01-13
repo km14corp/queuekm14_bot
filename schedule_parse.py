@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-class Parsing_lesson:
+class Parser:
     def __init__(self, url, data):
         self.schedule_url = url
         self.data_base = data
@@ -45,13 +45,13 @@ class Parsing_lesson:
 
         return closest_subs_list, closest_sub, today_list
 
-    def main(self, sub):
+    def update_events(self, sub):
         """
         adding and deleting tables
         -adding- finding closest subjects and check if "our subject" is in this list
         -deleting-
         """
-        closest, closest_sub, today = self.parse(self.schedule_url)
+        closest, closest_sub, today = Parser.parse(self.schedule_url)
         if closest_sub not in today:
             today.append(closest_sub)
 
