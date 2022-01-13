@@ -1,5 +1,4 @@
 import logging
-import sqlite3
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -10,7 +9,7 @@ from keybord import keyboard_bool, make_markup, keyboard_start
 import config
 import schedule_parse as sc
 
-url = "http://rozklad.kpi.ua/Schedules/ViewSchedule.aspx?g=8bb9bcf6-5db2-4124-8c1a-d0debc152bc9"
+schedule_url = "http://rozklad.kpi.ua/Schedules/ViewSchedule.aspx?g=8bb9bcf6-5db2-4124-8c1a-d0debc152bc9"
 
 logging.basicConfig(level=logging.INFO)
 
@@ -32,6 +31,7 @@ class State_machine(StatesGroup):
     YES_STATE = State()
     NO_STATE = State()
 
+
 @dispatcher.message_handler(commands=["help"], state='*')
 async def start(message: types.message):
     """The start method"""
@@ -40,7 +40,7 @@ async def start(message: types.message):
                                                  "/delete_course - Удалить курс\n"
                                                  "/add_queue - Добавить очередь\n"
                                                  "/delete_queue - Удалить очередь\n"
-                                                 "/show_table - Показать таблицу" )
+                                                 "/show_table - Показать таблицу")
 
     await State_machine.START_STATE.set()
 
@@ -87,7 +87,8 @@ async def get_queue_to_delete(callback_query: types.CallbackQuery):
     queues.remove('courses')
     if len(queues) != 0:
         await bot.send_message(callback_query.from_user.id, "Выбери очередь, из которой хочешь выписаться",
-                               reply_markup=make_markup(queues).add(InlineKeyboardButton('Назад⬅', callback_data='back')))
+                               reply_markup=make_markup(queues).add(
+                                   InlineKeyboardButton('Назад⬅', callback_data='back')))
         await State_machine.DELETE_STATE.set()
     else:
         await bot.send_message(callback_query.from_user.id, "В данный момент нет никаких очередей")
@@ -161,6 +162,7 @@ async def press_yes(callback_query: types.CallbackQuery):
     queues = list(data_base.get_all_tables())
     queues.remove('users')
     queues.remove('courses')
+    print(queues)
     if len(queues) != 0:
         await bot.send_message(callback_query.from_user.id, "Выбери очередь, в которую хочешь записаться",
                                reply_markup=make_markup(queues))
@@ -180,11 +182,11 @@ async def press_no(callback_query: types.CallbackQuery):
 
 @dispatcher.message_handler(state=State_machine.NO_STATE)
 async def set_name(message: types.Message):
-    if not data_base.return_name(message.from_user.id):
-        data_base.add_name_id(str(message.from_user.id), message.text)
+    if not data_base.get_user_name(message.from_user.id):
+        data_base.add_user(str(message.from_user.id), message.text)
     else:
-        data_base.update_name(message.from_user.id, message.text)
-    name = data_base.return_name(message.from_user.id)
+        data_base.update_user_name(message.from_user.id, message.text)
+    name = data_base.get_user_name(message.from_user.id)
 
     await bot.send_message(message.from_user.id, "Хочешь ли записаться под именем\n" + name + "?",
                            reply_markup=keyboard_bool)
@@ -205,7 +207,7 @@ async def join_queue(callback_query: types.CallbackQuery):
         await bot.send_message(callback_query.from_user.id, "Вы уже записаны в эту очередь")
     print(data_base.return_info(callback_query.data))
     for x in data_base.return_info(callback_query.data):
-        message += (str(x[0]) + ") " + str(data_base.return_name(x[1])) + "\n")
+        message += (str(x[0]) + ") " + str(data_base.get_user_name(x[1])) + "\n")
     await bot.send_message(callback_query.from_user.id, message)
     await State_machine.START_STATE.set()
     await bot.send_message(callback_query.from_user.id, "Что дальше?)",
@@ -245,4 +247,13 @@ async def admin_course_add(message: types.Message):
 
 
 if __name__ == '__main__':
+    # print(data_base.get_courses())
+    # print(data_base.get_event_id('Алгебра і геометрія 1 13/01'))
+    # print(data_base.get_queue_number(1))
+    # print(data_base.is_booked(370560982, 2))
+    data_base.book_user(370560982, 1)
+    # data_base.get_course_id("Іноземна мова. Практичний курс іноземної мови 1")
+    data_base.delete_event("Іноземна мова. Практичний курс іноземної мови 1", "Іноземна мова. Практичний курс іноземної мови 1 test")
+
+
     executor.start_polling(dispatcher, skip_updates=True)

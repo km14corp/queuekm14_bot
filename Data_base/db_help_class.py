@@ -2,7 +2,7 @@ import sqlite3
 
 
 # SELECT (number+1) from bookings where event_id=1 ORDER by number desc LIMIT 1; to get new next available number in the queue
-def connect_close(func):
+def connect_close_decorator(func):
     """Decorator to do connect to database, and close connection"""
 
     def wrap(*args, **kwargs):
@@ -15,7 +15,7 @@ def connect_close(func):
     return wrap
 
 
-def connect_dec(func):
+def connect_decorator(func):
     """Decorator to do connect to database"""
 
     def wrap(*args, **kwargs):
@@ -49,7 +49,7 @@ class db_help:
         if self.conn:
             self.conn.close()
 
-    @connect_close
+    @connect_close_decorator
     def add_info(self, table, column, info):
         """Method to add info into our table
         - table - name of table in with we want to paste our info
@@ -61,7 +61,7 @@ class db_help:
             info_form = info
         else:
             info_form = info[0]
-        if info_form not in self.unzip(self.return_info(table, column)):
+        if info_form not in self.unzip(self.get_info(table, column)):
             if column == '*':
                 column_formatted = ""
                 a = "'" + "', '".join(info) + "'"
@@ -73,138 +73,108 @@ class db_help:
                 column_formatted = '(' + ', '.join(column) + ')'
                 a = "'" + "', '".join(info) + "'"
             print(
-                "INSERT OR IGNORE INTO '{table}' {column} VALUES ({quest})".format(table=table, column=column_formatted,
-                                                                                   quest=a))
+                f"INSERT OR IGNORE INTO '{table}' {column_formatted} VALUES ({a})")
             self.cursor.execute(
-                "INSERT OR IGNORE INTO '{table}' {column} VALUES ({quest})".format(table=table, column=column_formatted,
-                                                                                   quest=a))
+                f"INSERT OR IGNORE INTO '{table}' {column_formatted} VALUES ({a})")
 
             return True
         else:
-            # print(self.unzip(self.return_info(table, column)))
-            # print('We already had this info')
+            print('We already had this info')
             return False
 
-    def add_name_id(self, id, name):
+    def add_user(self, user_id, name):
         """Method to make your adding id and name to the table 'user' easier"""
-        return self.add_info('users', '*', [id, name])
+        return self.add_info('users', '*', [user_id, name])
 
-    @connect_dec
-    def return_info(self, where, what='*'):
+    @connect_decorator
+    def get_info(self, table, what='*', where='1=1'):
         """This method is return info
         - where - name of table where info is exists
         - what - name(s) of column(s) where info is settle down"""
         if not isinstance(what, str):
             what = ', '.join(what)
-
-        return_inf = self.cursor.execute("SELECT {what} FROM '{where}'".format(what=what, where=where)).fetchall()
+        return_inf = self.cursor.execute(
+            f"SELECT {what} FROM '{table}' WHERE {where}").fetchall()
         return return_inf
 
-    @connect_dec
-    def get_all_tables(self):
-        """This method is returning names of all tables in database"""
-        names = list(list(zip(*self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' and "
-                                                   "name NOT LIKE 'sqlite_%'")))[0])
-        return names
+    @connect_close_decorator
+    def get_courses(self, what='*'):
+        result = self.get_info('courses', what)
+        if (len(what) > 1 and type(what) == tuple) or what == '*':
+            return result
+        else:
+            return self.unzip(result)
 
-    @connect_close
-    def make_db(self, name):
-        """Method to create new database (for difference queue)
-        - name - name of new database"""
-        if name not in self.have_db():
-            self.cursor.execute("CREATE TABLE '{}' ("
-                                "number INTEGER PRIMARY KEY AUTOINCREMENT,"
-                                " id   STRING  UNIQUE)".format(name))
+        # return result
+
+    @connect_close_decorator
+    def get_event_id(self, name):
+        result = self.get_info('events', 'id', f"event_name = '{name}'")
+        return self.unzip(result)[0]
+
+    def get_course_id(self, course_name):
+        result = self.cursor.execute(f"SELECT id FROM courses WHERE name='{course_name}'").fetchall()
+        return result[0][0]
+
+    @connect_decorator
+    def get_queue_number(self, event_id):
+        result = self.cursor.execute(f"SELECT Count(number) from bookings WHERE event_id= {event_id}").fetchall()
+        return result[0][0] + 1
+
+    @connect_decorator
+    def is_booked(self, user_id, event_id):
+        if self.cursor.execute(f"SELECT * from bookings WHERE event_id= {event_id} and user_id = {user_id}").fetchall():
             return True
         else:
-            print('We already have the same table')
             return False
 
-    @connect_close
-    def delete_db(self, name):
-        """Method to delete database
-        - name - name of database we want to delete"""
-        if name in self.have_db():
-            self.cursor.execute("DROP TABLE '{}'".format(name))
-            print('{} has deleted'.format(name))
-            return True
-        else:
-            print('We haven`t the same table')
-            return False
+    @connect_close_decorator
+    def get_events(self):
+        result = self.get_info('events', 'name')
+        return list(self.unzip(result))
 
-    @connect_dec
-    def return_names(self, where):
-        """This method is return list of names from table with id
-        - where - name of table where info is exists"""
-        return_inf = self.cursor.execute(
-            "Select u.name FROM '{where}' w JOIN 'users' u ON w.name=u.id".format(where=where)).fetchall()
-        return self.unzip(return_inf)
+    @connect_decorator
+    def book_user(self, user_id, event_id):
+        self.add_info('bookings', ['event_id', 'user_id', 'number'],
+                      [str(event_id), str(user_id), str(self.get_queue_number(event_id))])
 
-    @connect_close
-    def update_name(self, person_id, name):
+    @connect_close_decorator
+    def unbook_user(self, user_id, event_id):
+        print(f"DELETE FROM bookings WHERE user_id={user_id} and event_id={event_id}")
+        self.cursor.execute(f"DELETE FROM bookings WHERE user_id={user_id} and event_id={event_id}")
+
+    @connect_close_decorator
+    def update_user_name(self, user_id, name):
         """This method is to update persons name
         - id - persons id number
         - name - name in what we want to change"""
-        if self.cursor.execute('SELECT name FROM users WHERE id={id}'.format(id=person_id)):
+        if self.cursor.execute('SELECT name FROM users WHERE id={id}'.format(id=user_id)):
             self.cursor.execute('UPDATE users'
                                 f" SET name = '{name}'"
-                                f" WHERE id = '{person_id}'")
+                                f" WHERE id = '{user_id}'")
         else:
-            self.add_info('users', ['id', 'name'], [person_id, name])
+            self.add_info('users', ['id', 'name'], [user_id, name])
 
-    @connect_dec
-    def get_info(self, table):
-        try:
-            a = self.cursor.execute('SELECT * FROM {table}'.format(table=table)).fetchall()
-            return a
-        except:
-            print("Something went wrong in get_info()")
-
-    @connect_close
-    def return_name(self, person_id):
+    @connect_close_decorator
+    def get_user_name(self, person_id):
         """This method is returning persons name
         - id - persons id number"""
-        if self.cursor.execute('SELECT name FROM users WHERE id={id}'.format(id=person_id)).fetchall():
-            a = self.cursor.execute('SELECT name FROM users WHERE id={id}'.format(id=person_id)).fetchall()
+        if self.cursor.execute(f'SELECT name FROM users WHERE id={id}').fetchall():
+            a = self.cursor.execute(f'SELECT name FROM users WHERE id={id}').fetchall()
             return self.unzip(a)[0]
         else:
             print('We haven`t your name in our database, please enter it')
             return False
 
-    @connect_dec
-    def check_id_in_queue(self, person_id, table):
-        """This method is returning persons name
-        - id - persons id number"""
-        if self.cursor.execute("SELECT id FROM '{table}' WHERE id={id}".format(id=person_id, table=table)).fetchall():
-            return True
-        else:
-            print('We haven`t your name in our database, please enter it')
-            return False
+    @connect_close_decorator
+    def add_event(self, course_name, name):
+        print(f"INSERT OR IGNORE INTO events (course_id, name) VALUES ({self.get_course_id(course_name)}, '{name}')")
+        self.cursor.execute(
+            f"INSERT OR IGNORE INTO events (course_id, name) VALUES ({self.get_course_id(course_name)}, '{name}')")
 
-    @connect_dec
-    def have_db(self):
-        """This method is returning names of all tables in database"""
-        names = list(zip(*self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' and "
-                                              "name NOT LIKE 'sqlite_%'")))[0]
-        return names
+    @connect_close_decorator
+    def delete_event(self, course_name, name):
+        print(f"DELETE FROM events WHERE course_id = {self.get_course_id(course_name)} and name = '{name}'")
+        self.cursor.execute(
+            f"DELETE FROM events WHERE course_id = {self.get_course_id(course_name)} and name = '{name}'")
 
-    @connect_close
-    def delete_info(self, table, column, id):
-        """Method to delete row in database and move queue
-         - table - name of table in with we want to paste our info
-        - name - name what we want to delete
-        - column - name of column where name is settle down
-        """
-        if list(self.cursor.execute("SELECT number "
-                                    " FROM '{table}' WHERE {row}='{name}'".format(table=table, name=id,
-                                                                                  row=column))):
-            a = list(self.cursor.execute("SELECT number "
-                                         " FROM '{table}' WHERE {row}='{name}'".format(table=table, name=id,
-                                                                                       row=column)))[0][0]
-            self.cursor.execute("DELETE FROM '{table}'"
-                                " WHERE {row}='{name}'".format(row=column, table=table, name=id))
-            self.cursor.execute("UPDATE '{table}'"
-                                " SET number=number-1"
-                                " WHERE number>{a}".format(table=table, row=column, name=id, a=a))
-            return True
-        return False

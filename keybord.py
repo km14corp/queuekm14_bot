@@ -9,9 +9,10 @@ button2 = InlineKeyboardButton('Просмотреть очередь', callback
 button3 = InlineKeyboardButton('Выписаться из очереди', callback_data='delete')
 keyboard_start = InlineKeyboardMarkup(row_width=2).add(button2, button3, button1)
 
+
 def make_markup(list_of_items):
     keyboard = InlineKeyboardMarkup()
-    for item in list_of_items:
-        button = InlineKeyboardButton(item, callback_data=item)
+    for index, item in enumerate(list_of_items):
+        button = InlineKeyboardButton(str(index + 1) + ') ' + item[:30] + "...", callback_data=item)
         keyboard.add(button)
     return keyboard
