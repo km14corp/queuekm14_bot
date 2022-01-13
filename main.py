@@ -58,14 +58,15 @@ async def start(message: types.message):
 @dispatcher.callback_query_handler(lambda c: c.data == 'enroll', state=State_machine.START_STATE)
 async def enroll(callback_query: types.CallbackQuery):
     subs = data_base.get_info('courses')
-    for sub in subs:
-        sc.main(str(sub[1]), data_base)
+    # for sub in subs:
+    #     sc.main(str(sub[1]), data_base)
     await State_machine.ENROLL_STATE.set()
     await get_name(callback_query)
 
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'view', state=State_machine.START_STATE)
 async def view(callback_query: types.CallbackQuery):
+
     queues = list(data_base.get_all_tables())
     queues.remove('users')
     queues.remove('courses')
@@ -251,9 +252,10 @@ if __name__ == '__main__':
     # print(data_base.get_event_id('Алгебра і геометрія 1 13/01'))
     # print(data_base.get_queue_number(1))
     # print(data_base.is_booked(370560982, 2))
-    data_base.book_user(370560982, 1)
+    # data_base.book_user(405856902, 1)
     # data_base.get_course_id("Іноземна мова. Практичний курс іноземної мови 1")
-    data_base.delete_event("Іноземна мова. Практичний курс іноземної мови 1", "Іноземна мова. Практичний курс іноземної мови 1 test")
+    data_base.delete_event("Іноземна мова. Практичний курс іноземної мови 1", "Іноземна мова. Практичний курс іноземної мови 1 13/01")
+    # (data_base.get_event_queue(1))
 
 
     executor.start_polling(dispatcher, skip_updates=True)
