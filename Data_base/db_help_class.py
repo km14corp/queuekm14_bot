@@ -155,7 +155,6 @@ class db_help:
 
         """This method is returning persons name
         - id - persons id number"""
-        print(f'SELECT name FROM users WHERE id={person_id}')
         if self.cursor.execute(f'SELECT name FROM users WHERE id={person_id}').fetchall():
             a = self.cursor.execute(f'SELECT name FROM users WHERE id={person_id}').fetchall()
             return self.unzip(a)[0]

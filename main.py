@@ -64,7 +64,6 @@ async def enroll(callback_query: types.CallbackQuery):
 @dispatcher.callback_query_handler(lambda c: c.data == 'view', state=State_machine.START_STATE)
 async def view(callback_query: types.CallbackQuery):
     events = data_base.get_events()
-    print(events)
     if len(events) != 0:
         await bot.send_message(callback_query.from_user.id, "Выбери очередь, которую хочешь просмотреть",
                                reply_markup=make_markup(events))
@@ -115,7 +114,6 @@ async def delete(callback_query: types.CallbackQuery):
 async def get_queue(callback_query: types.CallbackQuery):
     message = ""
     for index, user_name in data_base.get_event_queue(callback_query.data):
-        print(index, user_name)
         message += (str(index) + ") " + user_name + "\n")
     if len(message) == 0:
         await bot.send_message(callback_query.from_user.id, "Эта очередь пустая")
@@ -155,7 +153,6 @@ async def press_yes(callback_query: types.CallbackQuery):
             name += callback_query.from_user.last_name
         data_base.add_user(callback_query.from_user.id, name)
     events = data_base.get_events()
-    print(events)
     if len(events) != 0:
         await bot.send_message(callback_query.from_user.id, "Выбери очередь, в которую хочешь записаться",
                                reply_markup=make_markup(events))
