@@ -55,7 +55,7 @@ class Parser:
         # adding table
         add_sub = " ".join((sub, str(d1.strftime("%d/%m"))))
         if sub in closest:
-            print("Creating table", add_sub)
+            # print("Adding table", add_sub)
             self.data_base.add_event(sub, add_sub)
 
         # deleting table

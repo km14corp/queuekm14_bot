@@ -39,7 +39,10 @@ async def start(message: types.message):
     """The start method"""
     await bot.send_message(message.from_user.id, "Админские команды: \n"
                                                  "/add_course - Добавить курс\n"
-                                                 "/delete_course - Удалить курс\n")
+                                                 "/delete_course - Удалить курс\n"
+                                                 "/show_users - Вывести таблицу users\n"
+                                                 "/show_courses - Вывести таблицу courses\n"
+                                                 "/show_events - Вывести таблицу events")
 
     await State_machine.START_STATE.set()
 
@@ -213,17 +216,50 @@ async def admin_course_delete(message: types.Message):
         data_base.delete_course(message.get_args())
 
 
+@dispatcher.message_handler(state='*', commands=['show_users'])
+async def admin_course_delete(message: types.Message):
+    temp_message = ""
+    users = data_base.get_users()
+    for index, user in enumerate(users):
+        temp_message += str(int(index) + 1) + ') ' + str(user[0]) + ' ' + str(user[1]) + '\n'
+    temp_message += f'\n There are {len(users)} users'
+    if message.from_user.id in [327601961, 405856902, 558259766, 418206061]:
+        await bot.send_message(message.from_user.id, temp_message)
+
+
+@dispatcher.message_handler(state='*', commands=['show_courses'])
+async def admin_course_delete(message: types.Message):
+    temp_message = ""
+    courses = data_base.get_courses()
+    for index, course in enumerate(courses):
+        temp_message += str(int(index) + 1) + ') ' + str(course[0]) + ' ' + str(course[1]) + '\n'
+    temp_message += f'\n There are {len(courses)} courses'
+    if message.from_user.id in [327601961, 405856902, 558259766, 418206061]:
+        await bot.send_message(message.from_user.id, temp_message)
+
+
+@dispatcher.message_handler(state='*', commands=['show_events'])
+async def admin_course_delete(message: types.Message):
+    temp_message = ""
+    events = data_base.get_events()
+    for index, event in enumerate(events):
+        temp_message += str(int(index) + 1) + ') ' + str(event) + '\n'
+    temp_message += f'\n There are {len(events)} events'
+    if message.from_user.id in [327601961, 405856902, 558259766, 418206061]:
+        await bot.send_message(message.from_user.id, temp_message)
+
+
 async def queue_update():
     subs = data_base.get_courses('name')
     for sub in subs:
         try:
             parser.update_events(sub)
         except:
-            print("No queues update this time!")
+            print(f"No queues update for {sub}")
 
 
 async def scheduler():
-    aioschedule.every().day.at("4:00").do(queue_update)
+    aioschedule.every().day.at("00:00").do(queue_update)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)

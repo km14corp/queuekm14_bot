@@ -166,6 +166,8 @@ class db_help:
     def add_event(self, course_name, event_name):
         self.cursor.execute(
             f"INSERT OR IGNORE INTO events (course_id, name) VALUES ({self.get_course_id(course_name)}, '{event_name}')")
+        print(
+            f"INSERT OR IGNORE INTO events (course_id, name) VALUES ({self.get_course_id(course_name)}, '{event_name}')")
 
     @connect_close_decorator
     def delete_event(self, course_name, event_name):
@@ -193,6 +195,11 @@ class db_help:
     @connect_close_decorator
     def delete_course(self, course_name):
         self.cursor.execute(f"DELETE FROM courses WHERE name = '{course_name}'")
+
+    @connect_close_decorator
+    def get_users(self):
+        result = self.cursor.execute("SELECT * FROM users").fetchall()
+        return result
 
 
 
