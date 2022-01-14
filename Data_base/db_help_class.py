@@ -59,6 +59,7 @@ class db_help:
         else:
             info_form = info[0]
         if info_form not in self.unzip(self.get_info(table, column)):
+            self.connect()
             if column == '*':
                 column_formatted = ""
                 a = "'" + "', '".join(info) + "'"
@@ -69,8 +70,6 @@ class db_help:
             else:
                 column_formatted = '(' + ', '.join(column) + ')'
                 a = "'" + "', '".join(info) + "'"
-            print(
-                f"INSERT OR IGNORE INTO '{table}' {column_formatted} VALUES ({a})")
             self.cursor.execute(
                 f"INSERT OR IGNORE INTO '{table}' {column_formatted} VALUES ({a})")
 
@@ -104,9 +103,7 @@ class db_help:
 
     @connect_close_decorator
     def get_event_id(self, name):
-        print(f"SELECT id FROM events WHERE name='{name}'")
         result = self.cursor.execute(f"SELECT id FROM events WHERE name='{name}'").fetchall()
-        print(result)
         return result[0][0]
 
     @connect_close_decorator
@@ -139,7 +136,6 @@ class db_help:
 
     @connect_close_decorator
     def unbook_user(self, user_id, event_id):
-        print(f"DELETE FROM bookings WHERE user_id={user_id} and event_id={event_id}")
         self.cursor.execute(f"DELETE FROM bookings WHERE user_id={user_id} and event_id={event_id}")
 
     @connect_close_decorator
@@ -159,8 +155,9 @@ class db_help:
 
         """This method is returning persons name
         - id - persons id number"""
-        if self.cursor.execute(f'SELECT name FROM users WHERE id={id}').fetchall():
-            a = self.cursor.execute(f'SELECT name FROM users WHERE id={id}').fetchall()
+        print(f'SELECT name FROM users WHERE id={person_id}')
+        if self.cursor.execute(f'SELECT name FROM users WHERE id={person_id}').fetchall():
+            a = self.cursor.execute(f'SELECT name FROM users WHERE id={person_id}').fetchall()
             return self.unzip(a)[0]
         else:
             print('We haven`t your name in our database, please enter it')
@@ -177,9 +174,6 @@ class db_help:
         course_id = self.get_course_id(course_name)
         self.connect()
 
-        print(f"DELETE FROM bookings WHERE event_id = {event_id}")
-        print(f"DELETE FROM events WHERE course_id = {course_id}")
-
         self.cursor.execute(f"DELETE FROM bookings WHERE event_id = {event_id}")
         self.cursor.execute(
             f"DELETE FROM events WHERE course_id = {course_id}")
@@ -188,5 +182,22 @@ class db_help:
     def get_event_queue(self, event_id):
         result = self.cursor.execute(
             f"SELECT bookings.number,  users.name FROM bookings JOIN users ON users.id = bookings.user_id  WHERE "
-            f"event_id={event_id}").fetchall()
+            f"event_id={event_id} ORDER BY number").fetchall()
         return result
+
+    @connect_close_decorator
+    def is_user_present(self, user_id):
+        result = self.cursor.execute(f"SELECT COUNT(name) FROM users WHERE id = {user_id}").fetchall()
+        if result[0][0] == 0: return False
+        return True
+
+    @connect_close_decorator
+    def delete_course(self, course_name):
+        self.cursor.execute(f"DELETE FROM courses WHERE name = '{course_name}'")
+
+
+
+
+
+
+
