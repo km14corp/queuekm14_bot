@@ -28,14 +28,14 @@ class Parser:
                 for span in a.find_all('span'):
                     closest_sub = span.getText()
 
-            # creating a list of closest subjects
-            tr = list(tr)
-            try:
-                tr4 = tr[closest_num]
-                for span in tr4.find_all('span'):
-                    closest_subs_list.append(span.getText())
-            except:
-                pass
+                # creating a list of closest subjects
+                tr = list(tr)
+                try:
+                    tr4 = tr[closest_num]
+                    for span in tr4.find_all('span'):
+                        closest_subs_list.append(span.getText())
+                except:
+                    pass
 
         return closest_subs_list, closest_sub
 
