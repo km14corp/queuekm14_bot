@@ -37,13 +37,7 @@ class Parser:
             except:
                 pass
 
-        # creating a list of today subjects
-        today_list = []
-        for td in url_items.find_all('td', class_="day_backlight"):
-            for span in td.find_all('span'):
-                today_list.append(span.getText())
-
-        return closest_subs_list, closest_sub, today_list
+        return closest_subs_list, closest_sub
 
     def update_events(self, sub):
         """
@@ -51,29 +45,21 @@ class Parser:
         -adding- finding closest subjects and check if "our subject" is in this list
         -deleting-
         """
-        closest, closest_sub, today = Parser.parse(self.schedule_url)
-        if closest_sub not in today:
-            today.append(closest_sub)
-
-        # today or tomorrow closest sub
-        compare = all(elem in closest for elem in today)
-        if compare:
-            day_add = timedelta(days=0)
-        else:
-            day_add = timedelta(days=1)
+        closest, closest_sub = Parser.parse(self.schedule_url)
 
         # today date
         today = date.today()
+        day_add = timedelta(days=1)
         d1 = today.today() + day_add
 
         # adding table
         add_sub = " ".join((sub, str(d1.strftime("%d/%m"))))
         if sub in closest:
-            print("Создание очереди", add_sub)
-            self.data_base.make_db(add_sub)
+            print("Creating table", add_sub)
+            self.data_base.add_event(sub, add_sub)
 
         # deleting table
-        queues = list(self.data_base.get_all_tables())
+        queues = list(self.data_base.get_events())
         for queue in queues:
             if queue != add_sub and sub in queue:
-                self.data_base.delete_db(queue)
+                self.data_base.delete_event(sub, queue)

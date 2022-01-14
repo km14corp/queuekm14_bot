@@ -7,7 +7,7 @@ from aiogram.types import InlineKeyboardButton
 from Data_base.db_help_class import db_help
 from keybord import keyboard_bool, make_markup, keyboard_start
 import config
-import schedule_parse as sc
+from schedule_parse import Parser
 
 schedule_url = "http://rozklad.kpi.ua/Schedules/ViewSchedule.aspx?g=8bb9bcf6-5db2-4124-8c1a-d0debc152bc9"
 
@@ -15,9 +15,9 @@ logging.basicConfig(level=logging.INFO)
 
 # initialise bot
 data_base = db_help('Data_base/queue.db')
+parser = Parser(schedule_url, data_base)
 bot = Bot(token=config.TOKEN)
 dispatcher = Dispatcher(bot, storage=MemoryStorage())
-subs1 = ["Дискретна математика 1"]
 
 
 class State_machine(StatesGroup):
@@ -38,7 +38,9 @@ async def start(message: types.message):
     await bot.send_message(message.from_user.id, "Админские команды: \n"
                                                  "/add_course - Добавить курс\n"
                                                  "/delete_course - Удалить курс\n"
-                                                 )
+                                                 "/add_queue - Добавить очередь\n"
+                                                 "/delete_queue - Удалить очередь\n"
+                                                 "/show_table - Показать таблицу")
 
     await State_machine.START_STATE.set()
 
@@ -55,21 +57,21 @@ async def start(message: types.message):
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'enroll', state=State_machine.START_STATE)
 async def enroll(callback_query: types.CallbackQuery):
-    subs = data_base.get_info('courses')
+    # subs = data_base.get_info('courses')
     # for sub in subs:
-    #     sc.main(str(sub[1]), data_base)
+    #    parser.update_events(str(sub[1]))
     await State_machine.ENROLL_STATE.set()
     await get_name(callback_query)
 
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'view', state=State_machine.START_STATE)
 async def view(callback_query: types.CallbackQuery):
-
-    events = data_base.get_events()
-    print(events)
-    if len(events) != 0:
+    queues = list(data_base.get_events())
+    queues.remove('users')
+    queues.remove('courses')
+    if len(queues) != 0:
         await bot.send_message(callback_query.from_user.id, "Выбери очередь, которую хочешь просмотреть",
-                               reply_markup=make_markup(events))
+                               reply_markup=make_markup(queues))
         await State_machine.VIEW_STATE.set()
     else:
         await bot.send_message(callback_query.from_user.id, "В данный момент нет никаких очередей")
@@ -80,10 +82,12 @@ async def view(callback_query: types.CallbackQuery):
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'delete', state=State_machine.START_STATE)
 async def get_queue_to_delete(callback_query: types.CallbackQuery):
-    events = data_base.get_events()
-    if len(events) != 0:
+    queues = list(data_base.get_events())
+    queues.remove('users')
+    queues.remove('courses')
+    if len(queues) != 0:
         await bot.send_message(callback_query.from_user.id, "Выбери очередь, из которой хочешь выписаться",
-                               reply_markup=make_markup(events).add(
+                               reply_markup=make_markup(queues).add(
                                    InlineKeyboardButton('Назад⬅', callback_data='back')))
         await State_machine.DELETE_STATE.set()
     else:
@@ -102,10 +106,10 @@ async def get_back(callback_query: types.CallbackQuery):
 
 @dispatcher.callback_query_handler(state=State_machine.DELETE_STATE)
 async def delete(callback_query: types.CallbackQuery):
-    if not data_base.is_booked(callback_query.from_user.id, callback_query.data):
+    if not data_base.check_id_in_queue(callback_query.from_user.id, callback_query.data):
         await bot.send_message(callback_query.from_user.id, "Вы не записывались в эту очередь")
     else:
-        data_base.unbook_user(callback_query.from_user.id, callback_query.data)
+        data_base.delete_info(callback_query.data, 'id', str(callback_query.from_user.id))
         await bot.send_message(callback_query.from_user.id, "Вы были успешно удалены из этой очереди")
     await bot.send_message(callback_query.from_user.id, "Что дальше?)",
                            reply_markup=keyboard_start)
@@ -115,9 +119,8 @@ async def delete(callback_query: types.CallbackQuery):
 @dispatcher.callback_query_handler(state=State_machine.VIEW_STATE)
 async def get_queue(callback_query: types.CallbackQuery):
     message = ""
-    for index, user_name in data_base.get_event_queue(callback_query.data):
-        print(index, user_name)
-        message += (str(index) + ") " + user_name + "\n")
+    for x in data_base.return_info(callback_query.data):
+        message += (str(x[0]) + ") " + str(data_base.return_name(x[1])) + "\n")
     if len(message) == 0:
         await bot.send_message(callback_query.from_user.id, "Эта очередь пустая")
     else:
@@ -129,7 +132,7 @@ async def get_queue(callback_query: types.CallbackQuery):
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'enroll', state=State_machine.ENROLL_STATE)
 async def get_name(callback_query: types.CallbackQuery):
-    if not data_base.is_user_present(callback_query.from_user.id):
+    if not data_base.get_user_name(callback_query.from_user.id):
         name = ""
         if callback_query.from_user.first_name is not None:
             name += callback_query.from_user.first_name
@@ -147,18 +150,22 @@ async def get_name(callback_query: types.CallbackQuery):
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'yes', state=State_machine.NAME_FLAG_STATE)
 async def press_yes(callback_query: types.CallbackQuery):
-    if not data_base.is_user_present(callback_query.from_user.id):
+    if not data_base.get_user_name(callback_query.from_user.id):
         name = ""
         if callback_query.from_user.first_name is not None:
             name += callback_query.from_user.first_name
         name += " "
         if callback_query.from_user.last_name is not None:
             name += callback_query.from_user.last_name
-        data_base.add_user(callback_query.from_user.id, name)
-    events = data_base.get_events()
-    if len(events) != 0:
+        data_base.add_name_id(str(callback_query.from_user.id),
+                              name)
+    queues = list(data_base.get_all_tables())
+    queues.remove('users')
+    queues.remove('courses')
+    print(queues)
+    if len(queues) != 0:
         await bot.send_message(callback_query.from_user.id, "Выбери очередь, в которую хочешь записаться",
-                               reply_markup=make_markup(events))
+                               reply_markup=make_markup(queues))
         await State_machine.YES_STATE.set()
     else:
         await bot.send_message(callback_query.from_user.id, "В данный момент нет никаких очередей")
@@ -175,11 +182,11 @@ async def press_no(callback_query: types.CallbackQuery):
 
 @dispatcher.message_handler(state=State_machine.NO_STATE)
 async def set_name(message: types.Message):
-    if not data_base.get_user_name(str(message.from_user.id)):
-        data_base.add_user(message.from_user.id, message.text)
+    if not data_base.get_user_name(message.from_user.id):
+        data_base.add_user(str(message.from_user.id), message.text)
     else:
         data_base.update_user_name(message.from_user.id, message.text)
-    name = data_base.get_user_name(str(message.from_user.id))
+    name = data_base.get_user_name(message.from_user.id)
 
     await bot.send_message(message.from_user.id, "Хочешь ли записаться под именем\n" + name + "?",
                            reply_markup=keyboard_bool)
@@ -191,13 +198,16 @@ async def set_name(message: types.Message):
 async def join_queue(callback_query: types.CallbackQuery):
     message = ""
 
-    if not data_base.is_booked(callback_query.from_user.id, callback_query.data):
-        data_base.book_user(callback_query.from_user.id, callback_query.data)
+    if not data_base.check_id_in_queue(callback_query.from_user.id, callback_query.data):
+        data_base.add_info(callback_query.data, ['number', 'id'],
+                           [str(len(data_base.return_info(callback_query.data)) + 1),
+                            str(callback_query.from_user.id)])
         await bot.send_message(callback_query.from_user.id, "Ты успешно записался в очередь " + callback_query.data)
     else:
         await bot.send_message(callback_query.from_user.id, "Вы уже записаны в эту очередь")
-    for index, user_name in data_base.get_event_queue(callback_query.data):
-        message += (str(index) + ") " + user_name + "\n")
+    print(data_base.return_info(callback_query.data))
+    for x in data_base.return_info(callback_query.data):
+        message += (str(x[0]) + ") " + str(data_base.get_user_name(x[1])) + "\n")
     await bot.send_message(callback_query.from_user.id, message)
     await State_machine.START_STATE.set()
     await bot.send_message(callback_query.from_user.id, "Что дальше?)",
@@ -213,27 +223,52 @@ async def admin_course_add(message: types.Message):
 @dispatcher.message_handler(state='*', commands=['delete_course'])
 async def admin_course_delete(message: types.Message):
     if message.from_user.id in [327601961, 405856902, 558259766, 418206061] and len(message.get_args()) != 0:
-        data_base.delete_course(message.get_args())
+        data_base.delete_info('courses', 'name', message.get_args())
 
 
-# @dispatcher.message_handler(state='*', commands=['add_queue'])
-# async def admin_queue_add(message: types.Message):
-#     if message.from_user.id in [327601961, 405856902, 558259766, 418206061] and len(message.get_args()) != 0:
-#         data_base.make_db(message.get_args())
-#
-#
-# @dispatcher.message_handler(state='*', commands=['delete_queue'])
-# async def admin_queue_delete(message: types.Message):
-#     if message.from_user.id in [327601961, 405856902, 558259766, 418206061] and len(message.get_args()) != 0:
-#         data_base.delete_db(message.get_args())
+@dispatcher.message_handler(state='*', commands=['add_queue'])
+async def admin_queue_add(message: types.Message):
+    if message.from_user.id in [327601961, 405856902, 558259766, 418206061] and len(message.get_args()) != 0:
+        data_base.make_db(message.get_args())
 
 
-# @dispatcher.message_handler(state='*', commands=['show_table'])
-# async def admin_course_add(message: types.Message):
-#     if message.from_user.id in [327601961, 405856902, 558259766, 418206061] and len(message.get_args()) != 0:
-#         table = [str(i) for i in data_base.get_info(message.get_args())]
-#
-#         await bot.send_message(message.from_user.id, '\n'.join(table))
+@dispatcher.message_handler(state='*', commands=['delete_queue'])
+async def admin_queue_delete(message: types.Message):
+    if message.from_user.id in [327601961, 405856902, 558259766, 418206061] and len(message.get_args()) != 0:
+        data_base.delete_db(message.get_args())
+
+
+@dispatcher.message_handler(state='*', commands=['show_table'])
+async def admin_course_add(message: types.Message):
+    if message.from_user.id in [327601961, 405856902, 558259766, 418206061] and len(message.get_args()) != 0:
+        table = [str(i) for i in data_base.get_info(message.get_args())]
+
+        await bot.send_message(message.from_user.id, '\n'.join(table))
+
+# scheduled update
+import asyncio
+import aioschedule
+
+
+async def queue_update():
+    print("Updated queues")
+    subs = data_base.get_info('courses')
+    for sub in subs:
+        try:
+            parser.update_events(str(sub[1]))
+        except:
+            print("No queues update this time!")
+
+
+async def scheduler():
+    aioschedule.every().day.at("4:00").do(queue_update)
+    while True:
+        await aioschedule.run_pending()
+        await asyncio.sleep(1)
+
+
+async def on_startup(_):
+    asyncio.create_task(scheduler())
 
 
 if __name__ == '__main__':
@@ -241,11 +276,9 @@ if __name__ == '__main__':
     # print(data_base.get_event_id('Алгебра і геометрія 1 13/01'))
     # print(data_base.get_queue_number(1))
     # print(data_base.is_booked(370560982, 2))
-    # data_base.book_user(405856902, 1)
+    # data_base.book_user(370560982, 1)
     # data_base.get_course_id("Іноземна мова. Практичний курс іноземної мови 1")
-    # data_base.delete_event("Іноземна мова. Практичний курс іноземної мови 1", "Іноземна мова. Практичний курс іноземної мови 1 13/01")
-    # (data_base.get_event_queue(1))
-    # print(data_base.is_user_present(405856902))
+    # data_base.delete_event("Іноземна мова. Практичний курс іноземної мови 1", "Іноземна мова. Практичний курс іноземної мови 1 test")
 
 
-    executor.start_polling(dispatcher, skip_updates=True)
+    executor.start_polling(dispatcher, skip_updates=True, on_startup=on_startup)
