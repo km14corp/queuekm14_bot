@@ -164,10 +164,12 @@ class db_help:
 
     @connect_close_decorator
     def add_event(self, course_name, event_name):
+        course_id = self.get_course_id(course_name)
+        self.connect()
         self.cursor.execute(
-            f"INSERT OR IGNORE INTO events (course_id, name) VALUES ({self.get_course_id(course_name)}, '{event_name}')")
+            f"INSERT OR IGNORE INTO events (course_id, name) VALUES ({course_id}, '{event_name}')")
         print(
-            f"INSERT OR IGNORE INTO events (course_id, name) VALUES ({self.get_course_id(course_name)}, '{event_name}')")
+            f"INSERT OR IGNORE INTO events (course_id, name) VALUES ({course_id}, '{event_name}')")
 
     @connect_close_decorator
     def delete_event(self, course_name, event_name):

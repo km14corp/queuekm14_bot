@@ -249,17 +249,28 @@ async def admin_course_delete(message: types.Message):
         await bot.send_message(message.from_user.id, temp_message)
 
 
+# @dispatcher.message_handler(state='*', commands=['add_event'])
+# async def admin_event_delete(message: types.Message):
+#     temp_message = ""
+#     events = data_base.get_events()
+#     for index, event in enumerate(events):
+#         temp_message += str(int(index) + 1) + ') ' + str(event) + '\n'
+#     temp_message += f'\n There are {len(events)} events'
+#     if message.from_user.id in [327601961, 405856902, 558259766, 418206061]:
+#         await bot.send_message(message.from_user.id, temp_message)
+#
+
+
 async def queue_update():
     subs = data_base.get_courses('name')
     for sub in subs:
-        try:
-            parser.update_events(sub)
-        except:
-            print(f"No queues update for {sub}")
+        parser.update_events(sub)
+
+        # print(f"No queues update for {sub}")
 
 
 async def scheduler():
-    aioschedule.every().day.at("00:00").do(queue_update)
+    aioschedule.every().day.at("21:41").do(queue_update)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
