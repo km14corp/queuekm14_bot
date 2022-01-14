@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 import requests
 from bs4 import BeautifulSoup
@@ -38,7 +38,13 @@ class Parser:
 
         # today date
         today = date.today()
-        day_add = timedelta(days=1)
+        today_day = datetime.today().weekday()
+        if today_day == 4:
+            day_add = timedelta(days=3)
+        elif today_day == 5:
+            day_add = timedelta(days=2)
+        else:
+            day_add = timedelta(days=1)
         d1 = today.today() + day_add
 
         # adding table
