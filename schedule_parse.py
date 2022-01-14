@@ -18,15 +18,26 @@ class Parser:
         url_items = BeautifulSoup(page.text, "html.parser")
 
         # finding closest sub num
+        closest_subs_list = []
+        closest_sub = ''
 
         for tr in url_items.find_all('tr'):
             if tr.find("td", class_="closest_pair") in tr:
                 closest_num = tr.index(tr.find("td", class_="closest_pair"))
-                # creating a list of closest subjects
-                tr4 = list(tr)[closest_num]
-                closest_subs_list = [span.getText() for span in tr4.find_all('span')]
+                a = tr.find("td", class_="closest_pair")
+                for span in a.find_all('span'):
+                    closest_sub = span.getText()
 
-        return closest_subs_list
+                # creating a list of closest subjects
+                tr = list(tr)
+                try:
+                    tr4 = tr[closest_num]
+                    for span in tr4.find_all('span'):
+                        closest_subs_list.append(span.getText())
+                except:
+                    pass
+
+        return closest_subs_list, closest_sub
 
     def update_events(self, sub):
         """
@@ -34,7 +45,7 @@ class Parser:
         -adding- finding closest subjects and check if "our subject" is in this list
         -deleting-
         """
-        closest = Parser.parse(self.schedule_url)
+        closest, closest_sub = Parser.parse(self.schedule_url)
 
         # today date
         today = date.today()
