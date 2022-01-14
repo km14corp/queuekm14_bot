@@ -34,8 +34,9 @@ class State_machine(StatesGroup):
     NO_STATE = State()
 
 
+
 @dispatcher.message_handler(commands=["help"], state='*')
-async def start(message: types.message):
+async def help(message: types.message):
     """The start method"""
     await bot.send_message(message.from_user.id, "Админские команды: \n"
                                                  "/add_course - Добавить курс\n"
@@ -80,7 +81,6 @@ async def view(callback_query: types.CallbackQuery):
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'delete', state=State_machine.START_STATE)
 async def get_queue_to_delete(callback_query: types.CallbackQuery):
-    queues = list(data_base.get_events())
     events = data_base.get_events()
     if len(events) != 0:
         await bot.send_message(callback_query.from_user.id, "Выбери очередь, из которой хочешь выписаться",
@@ -107,7 +107,7 @@ async def delete(callback_query: types.CallbackQuery):
         await bot.send_message(callback_query.from_user.id, "Вы не записывались в эту очередь")
     else:
         data_base.unbook_user(callback_query.from_user.id, callback_query.data)
-        await bot.send_message(callback_query.from_user.id, "Вы были успешно удалены из этой очереди")
+        await bot.send_message(callback_query.from_user.id, "Вы были успешно удалены из очереди " + data_base.get_event_name(callback_query.data))
     await bot.send_message(callback_query.from_user.id, "Что дальше?)",
                            reply_markup=keyboard_start)
     await State_machine.START_STATE.set()
@@ -193,7 +193,8 @@ async def join_queue(callback_query: types.CallbackQuery):
 
     if not data_base.is_booked(callback_query.from_user.id, callback_query.data):
         data_base.book_user(callback_query.from_user.id, callback_query.data)
-        await bot.send_message(callback_query.from_user.id, "Ты успешно записался в очередь " + callback_query.data)
+        await bot.send_message(callback_query.from_user.id, "Ты успешно записался в очередь " + data_base.
+                               get_event_name(callback_query.data))
     else:
         await bot.send_message(callback_query.from_user.id, "Вы уже записаны в эту очередь")
     for index, user_name in data_base.get_event_queue(callback_query.data):
@@ -249,16 +250,16 @@ async def admin_course_delete(message: types.Message):
         await bot.send_message(message.from_user.id, temp_message)
 
 
-# @dispatcher.message_handler(state='*', commands=['add_event'])
-# async def admin_event_delete(message: types.Message):
-#     temp_message = ""
-#     events = data_base.get_events()
-#     for index, event in enumerate(events):
-#         temp_message += str(int(index) + 1) + ') ' + str(event) + '\n'
-#     temp_message += f'\n There are {len(events)} events'
-#     if message.from_user.id in [327601961, 405856902, 558259766, 418206061]:
-#         await bot.send_message(message.from_user.id, temp_message)
-#
+@dispatcher.message_handler(state='*', commands=['add_event'])
+async def admin_event_delete(message: types.Message):
+    if message.from_user.id in [327601961, 405856902, 558259766, 418206061] and len(message.get_args()) != 0:
+        data_base.add_event("something_else", message.get_args())
+
+
+@dispatcher.message_handler(state='*', commands=['delete_event'])
+async def admin_event_delete(message: types.Message):
+    if message.from_user.id in [327601961, 405856902, 558259766, 418206061] and len(message.get_args()) != 0:
+        data_base.delete_event("something_else", message.get_args())
 
 
 async def queue_update():

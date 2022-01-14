@@ -203,6 +203,11 @@ class db_help:
         result = self.cursor.execute("SELECT * FROM users").fetchall()
         return result
 
+    @connect_close_decorator
+    def get_event_name(self, event_id):
+        result = self.cursor.execute(f"SELECT name FROM events WHERE id = {event_id}").fetchall()
+        return result[0][0]
+
 
 
 
