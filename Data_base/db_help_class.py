@@ -80,7 +80,7 @@ class db_help:
 
     def add_user(self, user_id, name):
         """Method to make your adding id and name to the table 'user' easier"""
-        return self.add_info('users', '*', [user_id, name])
+        return self.add_info('users', '*', [str(user_id), name])
 
     @connect_close_decorator
     def get_info(self, table, what='*', where='1=1'):
@@ -143,12 +143,13 @@ class db_help:
         """This method is to update persons name
         - id - persons id number
         - name - name in what we want to change"""
-        if self.cursor.execute('SELECT name FROM users WHERE id={id}'.format(id=user_id)):
-            self.cursor.execute('UPDATE users'
-                                f" SET name = '{name}'"
-                                f" WHERE id = '{user_id}'")
+        flag = self.cursor.execute('SELECT name FROM users WHERE id={id}'.format(id=user_id)).fetchall()
+        print(flag)
+
+        if flag:
+            self.cursor.execute(f"UPDATE users SET name = '{name}' WHERE id = '{user_id}'")
         else:
-            self.add_info('users', ['id', 'name'], [user_id, name])
+            self.add_info('users', ['id', 'name'], [str(user_id), name])
 
     @connect_close_decorator
     def get_user_name(self, person_id):
