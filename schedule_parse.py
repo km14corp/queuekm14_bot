@@ -39,12 +39,8 @@ class Parser:
         # today date
         today = date.today()
         today_day = datetime.today().weekday()
-        if today_day == 4:
-            day_add = timedelta(days=3)
-        elif today_day == 5:
-            day_add = timedelta(days=2)
-        else:
-            day_add = timedelta(days=1)
+        interesting_days = [4, 5]
+        day_add = timedelta(days=today_day - 1 if today_day in interesting_days else 1)
         d1 = today.today() + day_add
 
         # adding table
@@ -59,6 +55,3 @@ class Parser:
                 if queue != add_sub and sub in queue:
                     self.data_base.delete_event(queue)
                     print("DELETING EVENT", queue)
-
-
-
