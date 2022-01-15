@@ -51,20 +51,14 @@ class Parser:
 
         if sub in closest:
             add_sub = " ".join((sub, str(d1.strftime("%d/%m"))))
-            # print("Adding table", add_sub)
-            queues = list(self.data_base.get_events())
-            print(queues)
             self.data_base.add_event(sub, add_sub)
             queues = list(self.data_base.get_events())
-            print(queues)
-            # deleting table
 
+            # deleting table
             for queue in queues:
                 if queue != add_sub and sub in queue:
-                    try:
-                        self.data_base.delete_event(sub, queue)
-                        print("DELETING EVENT", queue)
-                    except:
-                        print("DELETING PROBLEM")
+                    self.data_base.delete_event(queue)
+                    print("DELETING EVENT", queue)
+
 
 

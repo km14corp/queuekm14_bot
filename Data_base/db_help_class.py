@@ -172,14 +172,12 @@ class db_help:
             f"INSERT OR IGNORE INTO events (course_id, name) VALUES ({course_id}, '{event_name}')")
 
     @connect_close_decorator
-    def delete_event(self, course_name, event_name):
+    def delete_event(self, event_name):
         event_id = self.get_event_id(event_name)
-        course_id = self.get_course_id(course_name)
         self.connect()
 
         self.cursor.execute(f"DELETE FROM bookings WHERE event_id = {event_id}")
-        self.cursor.execute(
-            f"DELETE FROM events WHERE course_id = {course_id}")
+        self.cursor.execute(f"DELETE FROM events WHERE id = {event_id}")
 
     @connect_close_decorator
     def get_event_queue(self, event_id):
