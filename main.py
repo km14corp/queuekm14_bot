@@ -43,7 +43,9 @@ async def help(message: types.message):
                                                  "/delete_course - Удалить курс\n"
                                                  "/show_users - Вывести таблицу users\n"
                                                  "/show_courses - Вывести таблицу courses\n"
-                                                 "/show_events - Вывести таблицу events")
+                                                 "/show_events - Вывести таблицу events\n"
+                                                 "/add_event - Добавить событие\n"
+                                                 "/delete_event - Удалить событие")
 
     await State_machine.START_STATE.set()
 
@@ -60,6 +62,7 @@ async def start(message: types.message):
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'enroll', state=State_machine.START_STATE)
 async def enroll(callback_query: types.CallbackQuery):
+    # await bot.delete_message(callback_query.from_user.id, callback_query.message.message_id)  # delete message !!!!
     # subs = data_base.get_info('courses')
     await State_machine.ENROLL_STATE.set()
     await get_name(callback_query)
@@ -67,7 +70,7 @@ async def enroll(callback_query: types.CallbackQuery):
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'view', state=State_machine.START_STATE)
 async def view(callback_query: types.CallbackQuery):
-    await bot.delete_message(callback_query.from_user.id, callback_query.message.message_id) # delete message !!!!
+    # await bot.delete_message(callback_query.from_user.id, callback_query.message.message_id) # delete message !!!!
     events = data_base.get_events()
     if len(events) != 0:
         await bot.send_message(callback_query.from_user.id, "Выбери очередь, которую хочешь просмотреть",
@@ -82,6 +85,7 @@ async def view(callback_query: types.CallbackQuery):
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'delete', state=State_machine.START_STATE)
 async def get_queue_to_delete(callback_query: types.CallbackQuery):
+    # await bot.delete_message(callback_query.from_user.id, callback_query.message.message_id)  # delete message !!!!
     events = data_base.get_events()
     if len(events) != 0:
         await bot.send_message(callback_query.from_user.id, "Выбери очередь, из которой хочешь выписаться",
@@ -260,7 +264,7 @@ async def admin_event_delete(message: types.Message):
 @dispatcher.message_handler(state='*', commands=['delete_event'])
 async def admin_event_delete(message: types.Message):
     if message.from_user.id in [327601961, 405856902, 558259766, 418206061] and len(message.get_args()) != 0:
-        data_base.delete_event("something_else", message.get_args())
+        data_base.delete_event(message.get_args())
 
 
 async def queue_update():
@@ -272,7 +276,7 @@ async def queue_update():
 
 
 async def scheduler():
-    aioschedule.every().day.at("21:41").do(queue_update)
+    aioschedule.every().day.at("23:59").do(queue_update)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)

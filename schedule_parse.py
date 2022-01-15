@@ -39,15 +39,21 @@ class Parser:
         # today date
         today = date.today()
         today_day = datetime.today().weekday()
-        interesting_days = [4, 5]
-        day_add = timedelta(days=today_day - 1 if today_day in interesting_days else 1)
+        if today_day == 4:
+            day_add = timedelta(days=3)
+        elif today_day == 5:
+            day_add = timedelta(days=2)
+        else:
+            day_add = timedelta(days=1)
         d1 = today.today() + day_add
 
         # adding table
 
         if sub in closest:
             add_sub = " ".join((sub, str(d1.strftime("%d/%m"))))
-            self.data_base.add_event(sub, add_sub)
+            if sub + str(d1.strftime(" %d/%m")) not in self.data_base.get_events():
+                print(self.data_base.get_events())
+                self.data_base.add_event(sub, add_sub)
             queues = list(self.data_base.get_events())
 
             # deleting table
