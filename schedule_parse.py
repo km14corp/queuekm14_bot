@@ -48,13 +48,23 @@ class Parser:
         d1 = today.today() + day_add
 
         # adding table
-        add_sub = " ".join((sub, str(d1.strftime("%d/%m"))))
-        if sub in closest:
-            # print("Adding table", add_sub)
-            self.data_base.add_event(sub, add_sub)
 
-        # deleting table
-        queues = list(self.data_base.get_events())
-        for queue in queues:
-            if queue != add_sub and sub in queue:
-                self.data_base.delete_event(sub, queue)
+        if sub in closest:
+            add_sub = " ".join((sub, str(d1.strftime("%d/%m"))))
+            # print("Adding table", add_sub)
+            queues = list(self.data_base.get_events())
+            print(queues)
+            self.data_base.add_event(sub, add_sub)
+            queues = list(self.data_base.get_events())
+            print(queues)
+            # deleting table
+
+            for queue in queues:
+                if queue != add_sub and sub in queue:
+                    try:
+                        self.data_base.delete_event(sub, queue)
+                        print("DELETING EVENT", queue)
+                    except:
+                        print("DELETING PROBLEM")
+
+
