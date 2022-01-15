@@ -67,6 +67,7 @@ async def enroll(callback_query: types.CallbackQuery):
 
 @dispatcher.callback_query_handler(lambda c: c.data == 'view', state=State_machine.START_STATE)
 async def view(callback_query: types.CallbackQuery):
+    await bot.delete_message(callback_query.from_user.id, callback_query.message.message_id) # delete message !!!!
     events = data_base.get_events()
     if len(events) != 0:
         await bot.send_message(callback_query.from_user.id, "Выбери очередь, которую хочешь просмотреть",
