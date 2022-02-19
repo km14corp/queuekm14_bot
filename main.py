@@ -5,7 +5,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import InlineKeyboardButton
 
 from Data_base.db_help_class import db_help
-from keybord import keyboard_bool, make_markup, keyboard_start
+from keyboard import keyboard_bool, make_markup, keyboard_start
 import config
 from schedule_parse import Parser
 import asyncio
@@ -17,6 +17,8 @@ logging.basicConfig(level=logging.INFO)
 
 # initialise bot
 data_base = db_help('Data_base/queue.db')
+# TODO refactor to support PostgreSQL 
+
 parser = Parser(schedule_url, data_base)
 bot = Bot(token=config.TOKEN)
 dispatcher = Dispatcher(bot, storage=MemoryStorage())
